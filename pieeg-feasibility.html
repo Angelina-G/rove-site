@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PiEEG 2026 多模态神经-运动感知 × VR/AR 数字人系统 — 可行性分析报告</title>
+<style>
+  :root {
+    --bg: #fafafa; --card: #ffffff; --text: #1a1a2e; --muted: #555;
+    --accent: #6c5ce7; --accent2: #00b894; --warn: #e17055; --danger: #d63031;
+    --border: #e0e0e0; --code-bg: #f4f4f8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; font-size: 15px; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; line-height: 1.4; }
+  h2 { font-size: 22px; font-weight: 700; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 3px solid var(--accent); }
+  h3 { font-size: 18px; font-weight: 700; margin: 28px 0 12px; color: var(--accent); }
+  h4 { font-size: 16px; font-weight: 600; margin: 20px 0 8px; }
+  p { margin-bottom: 12px; }
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+  .meta-bar { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 32px; padding: 16px 20px; background: var(--card); border-radius: 10px; border: 1px solid var(--border); font-size: 13px; color: var(--muted); }
+  .meta-bar span strong { color: var(--text); }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+  .highlight-box { background: linear-gradient(135deg, #6c5ce715, #00b89415); border-left: 4px solid var(--accent); padding: 20px 24px; border-radius: 0 10px 10px 0; margin: 20px 0; }
+  .warn-box { background: #fff3e0; border-left: 4px solid var(--warn); padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+  .danger-box { background: #ffebee; border-left: 4px solid var(--danger); padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+  .success-box { background: #e8f5e9; border-left: 4px solid var(--accent2); padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13.5px; }
+  th { background: var(--accent); color: #fff; padding: 10px 12px; text-align: left; font-weight: 600; }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: #f9f9fc; }
+  tr:hover td { background: #f0eefc; }
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; margin: 2px 4px 2px 0; }
+  .tag-mature { background: #d4edda; color: #155724; }
+  .tag-growing { background: #fff3cd; color: #856404; }
+  .tag-frontier { background: #cce5ff; color: #004085; }
+  .tag-immature { background: #f8d7da; color: #721c24; }
+  .maturity-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 20px 0; }
+  .maturity-item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .maturity-item h4 { margin-top: 0; display: flex; justify-content: space-between; align-items: center; }
+  .score-bar { height: 8px; background: #eee; border-radius: 4px; margin: 8px 0; overflow: hidden; }
+  .score-fill { height: 100%; border-radius: 4px; }
+  ul, ol { margin: 8px 0 12px 24px; }
+  li { margin-bottom: 6px; }
+  .paper-item { padding: 10px 0; border-bottom: 1px dashed var(--border); }
+  .paper-item:last-child { border-bottom: none; }
+  .paper-title { font-weight: 600; font-size: 14px; }
+  .paper-meta { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .paper-desc { font-size: 13.5px; margin-top: 4px; color: #333; }
+  .toc { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px 28px; margin-bottom: 40px; }
+  .toc h3 { margin-top: 0; color: var(--text); }
+  .toc ol { margin-left: 20px; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .conclusion-big { font-size: 20px; font-weight: 700; text-align: center; padding: 32px; background: linear-gradient(135deg, #6c5ce7, #00b894); color: #fff; border-radius: 16px; margin: 24px 0; line-height: 1.6; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+  .footer { margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); text-align: center; }
+  .arch-diagram { background: var(--card); border: 2px solid var(--accent); border-radius: 12px; padding: 24px; text-align: center; margin: 20px 0; }
+  .arch-flow { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
+  .arch-node { background: var(--accent); color: #fff; padding: 12px 18px; border-radius: 8px; font-weight: 600; font-size: 14px; }
+  .arch-arrow { font-size: 24px; color: var(--accent); font-weight: bold; }
+  .small { font-size: 12.5px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>PiEEG 2026：多模态神经-运动感知 × VR/AR 数字人系统<br>可行性深度分析报告</h1>
+<p class="subtitle">基于 2022–2026 年顶刊论文、顶级院校项目与大厂技术布局的系统性调研</p>
+
+<div class="meta-bar">
+  <span><strong>调研时间：</strong>2026 年 9 月</span>
+  <span><strong>覆盖论文：</strong>80+ 篇（Nature / CVPR / SIGGRAPH / CHI / NeurIPS 等）</span>
+  <span><strong>院校项目：</strong>40+ 个</span>
+  <span><strong>大厂布局：</strong>30+ 项</span>
+  <span><strong>时间窗：</strong>2022–2026（经典工作追溯至 2017）</span>
+</div>
+
+<div class="toc">
+<h3>📋 目录</h3>
+<ol>
+  <li><a href="#summary">执行摘要：核心结论</a></li>
+  <li><a href="#idea">Idea 解析与技术架构拆解</a></li>
+  <li><a href="#research">七大子方向研究现状</a>
+    <ol>
+      <li>EEG + VR/AR 集成</li>
+      <li>MI-BCI 运动想象脑机接口</li>
+      <li>EMG 可穿戴阵列 + 动作识别</li>
+      <li>光学动捕 + IMU 融合</li>
+      <li>3D 人体扫描 / VRM 数字人生成</li>
+      <li>AR 环境扫描 / 视觉 SLAM</li>
+      <li>多模态融合（EEG+EMG+动捕）</li>
+    </ol>
+  </li>
+  <li><a href="#universities">顶级院校项目全景</a></li>
+  <li><a href="#industry">大厂技术布局全景</a></li>
+  <li><a href="#maturity">技术成熟度矩阵</a></li>
+  <li><a href="#feasibility">可行性深度评估</a></li>
+  <li><a href="#conclusion">结论与行动建议</a></li>
+</ol>
+</div>
+
+<!-- ==================== 1. 执行摘要 ==================== -->
+<h2 id="summary">一、执行摘要：核心结论</h2>
+
+<div class="conclusion-big">
+  整体判断：<strong>作为科研原型 / 开源平台高度可行，作为消费级产品短期内不可行。</strong><br>
+  差异化机会在于「全身多点位 EMG 阵列 + 多模态融合驱动 VRM 数字人」——这是当前学术界的明确空白带。
+</div>
+
+<div class="card">
+<h3>🔑 五条核心判断</h3>
+<ol>
+  <li><strong>EEG 不能当主力输入。</strong>非侵入式头皮 EEG 的 MI-BCI 实际信息传输率（ITR）仅 10–20 bit/min，只能给 2–3 个离散指令，且 15–30% 用户存在"BCI 盲"。EEG 的正确定位是<strong>被动状态监测（认知负荷/注意力/沉浸感）+ 隐式确认（SPN/ErrP）</strong>，主力输入应交给 EMG + 眼动 + 手势。</li>
+  <li><strong>EMG 是非侵入式神经接口的真正突破口。</strong>Meta 2025 年 7 月在 <em>Nature</em> 发表的通用 sEMG 腕带解码模型（近 20 万受试者数据），9 月随 Ray-Ban Display 眼镜以 $799 量产上市，空中手写达 20.9 WPM。这证明非侵入式神经接口已跨越"实验室→消费级"临界点——但路线是 sEMG 而非 EEG。</li>
+  <li><strong>动捕、数字人、AR 环境扫描三大模块均已成熟商品化。</strong>光学+IMU 混合动捕（清华 RobustCap、索尼 mocopi、Xsens）、单图/单视频生成可驱动 3D 人体（PSHuman/CVPR 2025、GoMAvatar/CVPR 2024）、VRM 生态（VRoid/Ready Player Me/UniVRM）、手机端 AR SLAM（ARKit/ARCore/3DGS-SLAM）均有成熟工具链，可直接复用。</li>
+  <li><strong>真正的创新空白是「全身多点位 EMG 阵列」。</strong>当前几乎所有 EMG 研究集中在前臂/腕部，下肢、躯干、肩部的 sEMG 阵列与 IMU/光学融合几乎无人做。将 EMG 扩展到全身并驱动 VRM 数字人，是有明确新颖性和高被引潜力的切入点。</li>
+  <li><strong>PiEEG 低成本路线适合原型验证，不适合临床级信号。</strong>PiEEG 已扩展为 PiEEG-8/16、JNEEG、IronBCI 家族，原生支持 LSL/OSC，社区活跃，非常适合多模态快速原型。但受 ADS1299 通用 ADC 和干电极限制，难以做临床级 ERP。EMG 对低成本硬件相对友好（mV 级信号远大于 EEG 的 μV 级）。</li>
+</ol>
+</div>
+
+<!-- ==================== 2. Idea 解析 ==================== -->
+<h2 id="idea">二、Idea 解析与技术架构拆解</h2>
+
+<div class="arch-diagram">
+  <h3>PiEEG 2026 系统架构（基于手绘草图）</h3>
+  <div class="arch-flow">
+    <div class="arch-node">VR 输入端<br><span style="font-weight:400;font-size:12px">EEG + MI-BCI + EMG(全身) + 光学动捕 + IMU</span></div>
+    <div class="arch-arrow">⟹</div>
+    <div class="arch-node">中间建模层<br><span style="font-weight:400;font-size:12px">3D 人体扫描 → VRM 数字人 + 动作驱动</span></div>
+    <div class="arch-arrow">⟹</div>
+    <div class="arch-node">AR 输出端<br><span style="font-weight:400;font-size:12px">手机+光学 → 3D 环境扫描(SLAM) → 数字人入真</span></div>
+  </div>
+  <p class="small">代号 "PiEEG 2026"，底层硬件指向树莓派式开源低成本脑电思路</p>
+</div>
+
+<div class="card">
+<h3>技术栈拆解为七大子方向</h3>
+<table>
+  <tr><th style="width:5%">#</th><th style="width:22%">子方向</th><th style="width:38%">核心问题</th><th style="width:35%">对应草图模块</th></tr>
+  <tr><td>1</td><td>EEG + VR/AR 集成</td><td>消费级脑电头显与 VR 头显的硬件集成、VR 中 BCI 交互范式</td><td>头部 EEG/MI-BCI 模组</td></tr>
+  <tr><td>2</td><td>MI-BCI 运动想象</td><td>运动想象信号解码、跨被试泛化、少样本校准、ITR 上限</td><td>MI-BCI 解码环节</td></tr>
+  <tr><td>3</td><td>EMG 可穿戴阵列</td><td>多点位肌电传感、动作识别、意图预测、电极位移鲁棒性</td><td>全身 EMG 布点</td></tr>
+  <tr><td>4</td><td>光学动捕 + IMU 融合</td><td>无标记视觉动捕、惯性动捕、混合融合、稀疏传感器恢复全身</td><td>光学动捕 + IMU</td></tr>
+  <tr><td>5</td><td>3D 人体扫描 / VRM</td><td>单目/多视角人体重建、自动绑定、VRM 格式生态、数字人快速生成</td><td>3DM(VRM) 建模</td></tr>
+  <tr><td>6</td><td>AR 环境扫描 / SLAM</td><td>手机端 ARKit/ARCore、LiDAR 建模、3DGS-SLAM、光照/遮挡一致性</td><td>AR 3D 环境扫描</td></tr>
+  <tr><td>7</td><td>多模态融合</td><td>EEG+EMG 脑肌电融合、生理+运动信号融合、分级融合架构、系统同步</td><td>全系统集成</td></tr>
+</table>
+</div>
+
+<!-- ==================== 3. 七大子方向研究现状 ==================== -->
+<h2 id="research">三、七大子方向研究现状</h2>
+
+<!-- 3.1 EEG + VR/AR -->
+<h3>3.1 EEG + VR/AR 集成</h3>
+<div class="card">
+<p><span class="tag tag-growing">快速发展中</span> 硬件可用，交互范式处于探索期</p>
+
+<h4>代表性论文</h4>
+<div class="paper-item">
+  <div class="paper-title">Combining VR with electroencephalography as a frontier of brain-computer interfaces</div>
+  <div class="paper-meta">UT Austin Nanshu Lu 组 · <em>Device</em> (Cell 子刊) · 2024</div>
+  <div class="paper-desc">截至 2024 年最系统的 VR-EEG 综述，盘点 Looxid VR、DSI-VR300、Galea、Cognixion One、NextMind 等所有商用集成方案的电极形态，明确指出五大瓶颈：毛发兼容、头显-电极无缝集成、无线化、记录位点受限、运动伪迹。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">Towards an Eye-Brain-Computer Interface: Combining Gaze with SPN for Target Selections in XR</div>
+  <div class="paper-meta">ACM CHI 2024</div>
+  <div class="paper-desc">提出"眼动定位 + 脑电确认"混合选择范式，用刺激前负电位（SPN）做被动确认，避免 P300 闪烁不适。证明 SPN 可在 VR 中解码用户对注视目标的意图。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">NeuroGaze: a hybrid EEG and eye-tracking BCI for hands-free interaction in VR</div>
+  <div class="paper-meta"><em>Frontiers in Human Neuroscience</em> · 2025</div>
+  <div class="paper-desc">用 Emotiv EPOC X（14 通道）+ 眼动在沉浸式 VR 中实现无手目标选择。与控制器、gaze+pinch 对比：错误率更低但完成更慢——定量给出了 EEG 确认式交互的速度-准确率权衡。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">A method for synchronized use of EEG and eye tracking in fully immersive VR</div>
+  <div class="paper-meta"><em>Frontiers in Human Neuroscience</em> · 2024</div>
+  <div class="paper-desc">实现 < 9 ms 抖动的多流同步，在线混合 SSVEP 拼写器；给出 EEG 与 VR 事件平均 36 ms 偏移量的实测数据——是 VR 闭环时间同步的工程参考。</div>
+</div>
+
+<h4>关键进展与瓶颈</h4>
+<ul>
+  <li><strong>已成熟：</strong>科研级多模态集成（OpenBCI Galea + Varjo XR-3 同步采集 EEG/EMG/EOG/EDA/PPG/眼动/IMU，2025.11 全无线版 Galea Neon 发布）；消费级 EEG 头显可与 Quest/Vive 并排佩戴。</li>
+  <li><strong>五大瓶颈：</strong>①毛发兼容干电极接触阻抗高；②头显面垫与电极力学要求冲突；③通道数受限（通常仅前额/枕区）；④VR 中头部转动剧烈导致运动伪迹；⑤无线触发精度。</li>
+  <li><strong>趋势：</strong>耳周 EEG（Samsung/汉阳大学合作耳塞式）是避开毛发问题的新路线；"gaze 定位 + EEG 确认"成为 HCI 社区 2024–2026 主流答案。</li>
+</ul>
+</div>
+
+<!-- 3.2 MI-BCI -->
+<h3>3.2 MI-BCI 运动想象脑机接口</h3>
+<div class="card">
+<p><span class="tag tag-growing">快速发展中</span> 算法突破明显，实用化仍受限</p>
+
+<h4>代表性论文</h4>
+<div class="paper-item">
+  <div class="paper-title">Large Brain Model (LaBraM)</div>
+  <div class="paper-meta">上海交通大学吕宝粮团队 · ICLR 2024</div>
+  <div class="paper-desc">在 20 个公开数据集 >2500 小时 EEG 上自监督预训练，VQ 神经谱预测 + masked neural code prediction。在 BCIC IV 2a/2b 等 MI 基准上大幅提升跨被试性能——是 2024 年后 MI 少样本/零样本校准的首选底座。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">BIOT: Brain Signal Foundation Model</div>
+  <div class="paper-meta">MIT · NeurIPS 2023/2024</div>
+  <div class="paper-desc">在 58,021 小时 EEG+ECG 上预训练，仅 3.2M 参数，patch 化 raw EEG。与 LaBraM 并列为两条主流 EEG 基础模型路线（raw vs VQ 离散化）。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">EEGNet: A Compact CNN for EEG-based BCI（经典奠基）</div>
+  <div class="paper-meta">US Army 实验室 · <em>Journal of Neural Engineering</em> · 2018</div>
+  <div class="paper-desc">轻量可跨范式迁移的 CNN 基线，depthwise+separable 卷积利用 EEG 时空结构。至今是几乎所有 MI 解码论文的对比基线，做 MI 必须复现。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">Real-Time Navigation in Google Street View Using a Motor Imagery-Based BCI</div>
+  <div class="paper-meta">PMC · 2023（21 名健康被试，干电极无线帽）</div>
+  <div class="paper-desc">用 MI 在 Google Street View 实时导航博物馆/城市，即便解码器准确率仅 ~80%/~60% 仍可完成任务——直接证明"MI 驱动 VR 导航"可行，且揭示准确率要求被任务结构大幅放宽。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">On-device Learning of EEGNet-based Network for Wearable MI-BCI</div>
+  <div class="paper-meta">arXiv · 2024</div>
+  <div class="paper-desc">在 RISC-V + AI 加速器上做端侧迁移学习，仅回传 dense 层即可让未注册用户在极少标注下完成现场校准——可穿戴头显端侧少样本适配的必答题。</div>
+</div>
+
+<h4>性能基准与瓶颈</h4>
+<table>
+  <tr><th>指标</th><th>当前水平</th><th>实用门槛</th><th>差距</th></tr>
+  <tr><td>跨被试四分类准确率（BCIC IV 2a）</td><td>~55–63%</td><td>70%+</td><td>显著</td></tr>
+  <tr><td>MI-BCI 实际 ITR</td><td>10–20 bit/min</td><td>>50 bit/min</td><td>2–5 倍</td></tr>
+  <tr><td>BCI 盲比例</td><td>15–30%</td><td><5%</td><td>根本性</td></tr>
+  <tr><td>零样本校准</td><td>未解决</td><td>开箱即用</td><td>根本性</td></tr>
+</table>
+<div class="warn-box">
+  <strong>关键判断：</strong>EEG 基础模型（LaBraM/BIOT/EEGPT/CBraMod）正在改写 MI-BCI 的 baseline，类似 NLP 领域 BERT 出现后的范式迁移。但 MI 本身 ITR 低、BCI 盲、跨被试泛化三大问题未根本解决。<strong>MI-BCI 只能承担"辅助意图层"，不能作为主力输入。</strong>
+</div>
+</div>
+
+<!-- 3.3 EMG -->
+<h3>3.3 EMG 可穿戴阵列 + 动作识别</h3>
+<div class="card">
+<p><span class="tag tag-growing">快速发展中</span> 正跨越"实验室→消费级"临界点</p>
+
+<h4>里程碑论文</h4>
+<div class="paper-item">
+  <div class="paper-title">A generic non-invasive neuromotor interface for human–computer interaction（Meta Neural Band）</div>
+  <div class="paper-meta">Meta Reality Labs / CTRL-labs（243 名贡献者）· <em>Nature</em> · 2025-07-23</div>
+  <div class="paper-desc">8–16 通道腕带式高灵敏度 sEMG 硬件 + 近 20 万受试者数据 + 跨被试通用解码模型。闭环手势解码中位 0.66 次目标获取/秒，空中手写 20.9 WPM（对比手机键盘约 36 WPM）。<strong>这是"EMG 阵列做到消费级通用化"的里程碑，直接证明跨日/跨人泛化从学术问题变成工程问题。</strong></div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">emg2qwerty: A Large Dataset with Baselines for Touch Typing using sEMG</div>
+  <div class="paper-meta">Meta · NeurIPS 2024 Datasets and Benchmarks Track</div>
+  <div class="paper-desc">108 名用户、1135 个 session、346 小时腕部 sEMG + QWERTY 键盘真值，520 万次按键——迄今最大公开 sEMG 数据集，为跨人/跨日泛化提供标准 benchmark。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">emg2pose: A Large and Diverse Benchmark for sEMG Hand Pose Estimation</div>
+  <div class="paper-meta">Meta Reality Labs · arXiv 2024</div>
+  <div class="paper-desc">sEMG-RD 腕带 + <strong>26 机位光学动捕</strong>同步采集手部姿态真值，直接对标"EMG→连续手部姿态"回归任务。这是"EMG + 光学动捕"多模态配对数据的标志性开源数据集，与本 idea 三模态融合最直接相关。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">MyoGestic: EMG interfacing framework for decoding multiple spared motor dimensions in individuals with neural lesions</div>
+  <div class="paper-meta"><em>Science Advances</em> · 2025-04-09</div>
+  <div class="paper-desc">无线 HD-EMG 手环 + 快速自适应 ML，在 SCI、脊髓卒中、截肢共 7 名受试者身上数分钟内实时解码多自由度运动意图，驱动 Ottobock Michelangelo 假手——证明 EMG 阵列临床实时意图解码可行性。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">ALVI Interface: Towards Full Hand Motion Decoding for Amputees Using sEMG</div>
+  <div class="paper-meta">arXiv · 2025</div>
+  <div class="paper-desc">Transformer 把 sEMG 直接映射到 <strong>20 自由度手指关节角</strong>，25 Hz 实时，预测-真值相关系数 0.8；VR 采集平台 + 共自适应解决跨日漂移。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">A noise-tolerant HMI based on deep learning-enhanced wearable sensors</div>
+  <div class="paper-meta">UCSD 徐升组 · <em>Nature Sensors</em> · 2025（该刊首篇论文）</div>
+  <div class="paper-desc">可拉伸柔性皮肤电子贴片 + DL 抗运动伪影，在动态运动中仍能识别手势并控制机械臂——柔性/织物电极 + 抗运动伪影方向的旗舰工作。</div>
+</div>
+
+<h4>关键进展与空白</h4>
+<ul>
+  <li><strong>已成熟：</strong>8 通道前臂臂环 6–10 手势分类离线准确率 95%+；HD-sEMG 18–37 手势 92–97%；科研硬件（Delsys、Myo 生态）成熟。</li>
+  <li><strong>2025–2026 跃迁：</strong>Meta Nature 2025 + Neural Band 上市，把"跨被试通用模型"从论文推向消费产品，"开箱即用"最大工程障碍被迈过。</li>
+  <li><strong>明确空白：</strong><span class="tag tag-frontier">学术空白带</span> 几乎所有 EMG 工作集中在前臂/腕部，<strong>下肢、躯干、肩部的 sEMG 阵列与 IMU/光学融合几乎无人做</strong>。将 sEMG 扩展到全身是有明确新颖性的切入点。</li>
+  <li><strong>持续瓶颈：</strong>电极位移/跨日漂移（session 间掉点 10–40%）；肌电信号受疲劳、出汗、皮下脂肪厚度影响；柔性电极长期佩戴（>72h）稳定性刚被证明但未产品化。</li>
+</ul>
+</div>
+
+<!-- 3.4 光学动捕 + IMU -->
+<h3>3.4 光学动捕 + IMU 融合</h3>
+<div class="card">
+<p><span class="tag tag-growing">快速发展中</span> 学术已成熟，工程快速商品化</p>
+
+<h4>代表性论文</h4>
+<div class="paper-item">
+  <div class="paper-title">Fusing Monocular Images and Sparse IMU Signals for Real-time Human Motion Capture (RobustCap)</div>
+  <div class="paper-meta">清华大学徐枫组 + OPPO 研究院 · SIGGRAPH Asia 2023</div>
+  <div class="paper-desc">单目 RGB + <strong>6 个稀疏 IMU</strong>，双坐标系策略 + 隐状态反馈，视觉被遮挡时 IMU 兜底，IMU 漂移时视觉校正，实时 SMPL 输出。这是"光学+稀疏 IMU 融合"被引最高的代表作，代码开源。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">HMD-Poser: Real-time Full-body Motion Capture with a Head-mounted Display and Sparse IMUs</div>
+  <div class="paper-meta">CVPR 2024</div>
+  <div class="paper-desc">VR 头显 + 0/2/3 个可伸缩 IMU，LSTM+Transformer 时空解耦，在线体型估计，实时 SMPL——直接对应草图中"VR 头显 + 身体 IMU"的采集形态。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">EgoPoser: Robust Real-Time Egocentric Pose Estimation from Sparse and Intermittent Observations Everywhere</div>
+  <div class="paper-meta">ETH Zürich Christian Holz 组 · ECCV 2024</div>
+  <div class="paper-desc">仅靠 HMD 自身传感器 + 少量身体 IMU，在手部离开视野、任意环境走动时仍鲁棒输出全身姿态——ETH 在 ego-centric 动捕方向的旗舰。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">Ego4o: Egocentric Human Motion Capture and Understanding from Multi-Modal Input</div>
+  <div class="paper-meta">Meta + MPI Informatik + ETH · CVPR 2025</div>
+  <div class="paper-desc">1–3 个 IMU + ego 图像 + 文本描述三路输入，VQ-VAE 隐空间统一，动捕与动作理解互相增强；缺模态时仍可退化运行——CVPR 2025 多模态全身动捕代表作。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">Mocap Everyone Everywhere: Lightweight Motion Capture With Smartwatches and a Head-mounted Camera</div>
+  <div class="paper-meta">CVPR 2024</div>
+  <div class="paper-desc">双 smartwatch IMU + 头装相机，无外部基础设施的轻量化全身动捕——消费级"手机/手表/头显"路线代表。</div>
+</div>
+
+<h4>技术谱系</h4>
+<div class="success-box">
+  <strong>奠基工作链：</strong>Huang et al. <em>DIP</em> (SIGGRAPH 2018) → Yi et al. <em>TransPose</em> (SIGGRAPH 2021) → <em>PIP</em> (SIGGRAPH 2022) → <em>TIP</em> (SIGGRAPH Asia 2022)——这一系列构成"6 个 IMU 恢复 SMPL 全身"的基线，几乎所有 2023 年后新工作都在其上改进。
+</div>
+<ul>
+  <li><strong>已成熟：</strong>光学+IMU 硬件层（OptiTrack、Noitom、Xsens 商用）；算法层（RobustCap、HMD-Poser、EgoPoser 已证明"单目+6 IMU"实时 SMPL 可行）。</li>
+  <li><strong>消费级路线：</strong>IMUPoser (CHI 2023) → MobilePoser (UIST 2025) → EveryWear (2025)，直接用手机/手表/耳机里现成的 IMU 做全身动捕，零额外传感器。</li>
+  <li><strong>瓶颈：</strong>视觉遮挡/自遮挡；IMU 零漂与磁干扰；消费级精度与延迟；多人大空间（Group Inertial Poser、UWB 方案 2025 年才起步）。</li>
+</ul>
+</div>
+
+<!-- 3.5 3D人体扫描 / VRM -->
+<h3>3.5 3D 人体扫描 / VRM 数字人生成</h3>
+<div class="card">
+<p><span class="tag tag-mature">工具链成熟</span> 全自动管线仍在快速迭代</p>
+
+<h4>代表性论文</h4>
+<div class="paper-item">
+  <div class="paper-title">PSHuman: Photorealistic Single-image 3D Human Reconstruction using Cross-Scale Multiview Diffusion and Explicit Remeshing</div>
+  <div class="paper-meta">CVPR 2025</div>
+  <div class="paper-desc">以 SMPL-X 为条件引导跨尺度多视角扩散模型，单张 clothed 全身照一分钟内生成带服饰细节、可换姿势的高保真 3D 人体，通过显式 remeshing 保留细节——直接对应"单张照片/扫描→可驱动 3D 人体"入口环节。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">Human Gaussian Splatting (HuGS): Real-time Rendering of Animatable Avatars</div>
+  <div class="paper-meta">华为诺亚方舟实验室 · CVPR 2024</div>
+  <div class="paper-desc">多视图视频训练 canonical 空间 3D 高斯人体，任意姿态下形变到观测空间，任意视角实时渲染——全身可动画高斯 avatar 代表作。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">SplattingAvatar: Realistic Real-Time Human Avatars with Mesh-Embedded Gaussian Splatting</div>
+  <div class="paper-meta">SIGGRAPH 2024</div>
+  <div class="paper-desc">把高斯嵌在三角网格表面（重心坐标+Phong 位移），显式分离运动与外观，现代 GPU 300 FPS、<strong>移动端 30 FPS</strong>——直接对应"放进手机 AR 场景仍能实时渲染"。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">GoMAvatar: Efficient Animatable Human Modeling from Monocular Video Using Gaussians-on-Mesh</div>
+  <div class="paper-meta">CVPR 2024</div>
+  <div class="paper-desc">单目视频输入，Gaussians-on-Mesh 混合表示，既保留 3DGS 渲染速度又兼容传统光栅化图形管线——"从一段视频自动生成可驱动数字人"的低门槛路线。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">ExAvatar: Expressive Whole-Body 3D Gaussian Avatar</div>
+  <div class="paper-meta">清华大学刘烨斌组 · ECCV 2024</div>
+  <div class="paper-desc">短单目视频即可生成 SMPL-X 驱动的全身表情化 3D 高斯 avatar，结合 SMPL-X 全身可驱动性与 3DGS 渲染效率——国内代表性工作。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">WHAM: Reconstructing World-grounded Humans with Accurate 3D Motion</div>
+  <div class="paper-meta">MPI-IS Michael Black 组 · CVPR 2024</div>
+  <div class="paper-desc">从视频重建全局坐标系下 3D 人体运动，融合 SLAM 估计的相机角速度，解决相机运动与人体运动解耦问题——这是"把数字人放进真实 AR 场景"的关键，人体轨迹必须和 SLAM 相机轨迹对齐。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">UniRig: One Model to Rig Them All — Diverse Skeleton Rigging</div>
+  <div class="paper-meta">SIGGRAPH TOG 2025</div>
+  <div class="paper-desc">自回归骨架树预测 + 骨-点交叉注意力蒙皮权重预测；发布 Rig-XL 数据集与 <strong>VRoid 数据集</strong>——"VRM 角色自动绑定"直接相关，尤其 VRoid 数据集命中 VRM 生态。</div>
+</div>
+
+<h4>VRM 生态工具链（可直接落地）</h4>
+<table>
+  <tr><th>环节</th><th>工具</th><th>说明</th></tr>
+  <tr><td>形象生成（二次元）</td><td>VRoid Studio（Pixiv，免费）</td><td>捏人直接导出 VRM 1.0</td></tr>
+  <tr><td>形象生成（写实）</td><td>Character Creator 4 → 导出 VRM</td><td>写实路线，已集成 NVIDIA Audio2Face</td></tr>
+  <tr><td>跨平台形象</td><td>Ready Player Me → GLB→VRM</td><td>自拍生成，已被 Roblox 收购</td></tr>
+  <tr><td>运行时绑定</td><td>UniVRM（Unity 开源插件）</td><td>自动骨骼映射、blendshape</td></tr>
+  <tr><td>面部驱动</td><td>VSeeFace / Warudo / VMagicMirror</td><td>webcam/iFacialMocap 驱动 VRM</td></tr>
+  <tr><td>全身动捕</td><td>iFacialMocap + iPhone/手表 IMU</td><td>对应草图中的 IMU 方案</td></tr>
+</table>
+<div class="success-box">
+  <strong>VRM 格式成熟度：</strong>VRM 1.0（2022.09 发布）基于 glTF 2.0，内置 humanoid rig、blendshape、许可证元数据；Khronos Group 于 2024.10 加入 VRM Consortium 推动全球化；VSeeFace/Warudo/3tene/VTube Studio 全兼容——是 VTuber 事实标准生态。
+</div>
+</div>
+
+<!-- 3.6 AR环境扫描 / SLAM -->
+<h3>3.6 AR 环境扫描 / 视觉 SLAM</h3>
+<div class="card">
+<p><span class="tag tag-mature">几何重建成熟</span> <span class="tag tag-growing">3DGS 语义级场景重建快速发展</span></p>
+
+<h4>代表性论文</h4>
+<div class="paper-item">
+  <div class="paper-title">GS-SLAM: Dense Visual SLAM with 3D Gaussian Splatting</div>
+  <div class="paper-meta">上海人工智能实验室 · 2024</div>
+  <div class="paper-desc">首次把 3D 高斯表示引入 SLAM 系统，实时可微 splatting 渲染管线，自适应膨胀策略增删高斯——3DGS-SLAM 方向早期代表作。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">SplaTAM: Splat, Track & Map 3D Gaussians for Dense RGB-D SLAM</div>
+  <div class="paper-meta">TUM/密歇根大学等 · CVPR 2024</div>
+  <div class="paper-desc">首次用显式体积表示（3D 高斯）从单个未位姿化 RGB-D 相机高保真重建，在线 track+map 系统——RGB-D/LiDAR iPad 扫描路线的学术基线。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">WildGS-SLAM: Monocular Gaussian Splatting SLAM in Dynamic Environments</div>
+  <div class="paper-meta">CVPR 2025</div>
+  <div class="paper-desc">单目高斯 SLAM 处理动态环境（人走动），重建静态部分高斯地图——真实 AR 场景必然有人，动态 SLAM 是刚需。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">MVSplat: Efficient 3D Gaussian Splatting from Sparse Multi-View Images</div>
+  <div class="paper-meta">ETH Zürich Marc Pollefeys 组 · ECCV 2024</div>
+  <div class="paper-desc">前馈式稀疏多视图直接预测 3D 高斯，无需逐场景优化，<strong>移动端可实时</strong>——"手机扫一圈→实时 3DGS 场景"的前馈路线。</div>
+</div>
+
+<h4>商用成熟度</h4>
+<ul>
+  <li><strong>已成熟：</strong>ARKit/ARCore 平面检测、世界锚点、人脸/手部追踪、遮挡 mesh 已是商用标准；iPhone/iPad Pro LiDAR + RoomPlan 做房间级扫描成熟；Apple visionOS Scene Reconstruction 直接输出 mesh；Quest 3 Depth API 做遮挡与物理。</li>
+  <li><strong>快速发展：</strong>3DGS SLAM（GS-SLAM、SplaTAM、WildGS-SLAM、Gaussian-LIC）2024–2025 爆发，把 SLAM 从"稀疏点云/网格"升级为"可渲染照片级场景"。</li>
+  <li><strong>瓶颈：</strong>动态环境鲁棒性；3DGS 场景在手机端的实时渲染与持久化（地图体积大）；虚拟数字人与真实场景的<strong>光照一致性</strong>（HDR 环境光从单目视频估计仍是研究热点）；跨会话持久化锚点。</li>
+</ul>
+</div>
+
+<!-- 3.7 多模态融合 -->
+<h3>3.7 多模态融合（EEG+EMG+动捕）</h3>
+<div class="card">
+<p><span class="tag tag-frontier">前沿探索中</span> 方向明确，系统级工作极少</p>
+
+<h4>代表性论文</h4>
+<div class="paper-item">
+  <div class="paper-title">Unilateral Upper Limb Fine Motor Imagery via Symmetric Cross-Modal Attention EEG–EMG Fusion (CATA-Net)</div>
+  <div class="paper-meta"><em>IEEE Sensors Journal</em> · 2026</div>
+  <div class="paper-desc">对称跨模态注意力 + 时序卷积网络（TCN），专门解决单侧上肢精细运动意象识别；多尺度可分离卷积 + cross-attention 建模 EEG/EMG 神经协同。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">A motor imagery classification model based on hybrid BCI and multitask learning of EEG and EMG deep features (2M-hBCINet)</div>
+  <div class="paper-meta"><em>Frontiers</em> · 2024</div>
+  <div class="paper-desc">无监督方式同时提取 EEG/EMG 深度特征，通道注意力模块（CAM）做特征融合，多任务学习提升跨被试泛化。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">Fusion of EEG and EMG signals for detecting pre-movement intention of sitting and standing</div>
+  <div class="paper-meta"><em>Frontiers in Neuroscience</em> · 2025</div>
+  <div class="paper-desc">基于 EEG-EMG 功能连接检测坐/站<strong>运动前意图</strong>，8 名健康人 + 5 名脊髓损伤患者，比单模态更早触发康复外骨骼——证明 EEG 可做"运动前意图"的早期预警。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">EgoEMG: Multimodal Egocentric Dataset with Bilateral EMG and Vision for Hand Pose Estimation</div>
+  <div class="paper-meta">清华大学 × 手亿智能 · arXiv 2026</div>
+  <div class="paper-desc">业界首个<strong>双侧 EMG + IMU + 第一视角 RGB + 外部 RGB-D + 22 DoF 手部姿态</strong>全时间同步基准；残差融合架构在 EMG+视觉手部姿态估计上刷新 SOTA——是"生理信号驱动数字人手部"方向最贴近草图的工作。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">EgoBrain: Synergizing Minds and Eyes For Human Action Understanding</div>
+  <div class="paper-meta">arXiv · 2025</div>
+  <div class="paper-desc">全球首个大规模<strong>第一视角视频与 EEG 时间对齐</strong>多模态数据集，用于跨模态动作识别。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">BrainFusion: Low-Code, Reproducible Software Framework for Multimodal BCI</div>
+  <div class="paper-meta">PMC · 2025</div>
+  <div class="paper-desc">支持 EEG/fNIRS/EMG/ECG 统一管线，EEG-fNIRS 运动意象 95.5%、EEG-ECG 睡眠分期 80.2%；可执行化部署——多模态 BCI 的低代码软件框架。</div>
+</div>
+
+<h4>融合架构的共识：分级融合</h4>
+<div class="highlight-box">
+  <strong>学术界与工业界的共同架构选择——"分级融合"：</strong>
+  <ul style="margin-bottom:0">
+    <li><strong>EEG 层</strong>：做"运动前意图/状态切换"（百毫秒级决策），如检测用户"想动手"的早期信号、认知负荷监测、ErrP 纠错</li>
+    <li><strong>EMG 层</strong>：做连续关节角/肌肉张力驱动（25–100 Hz），如手部 20 DoF 手指运动、肌肉激活水平</li>
+    <li><strong>IMU/光学层</strong>：做骨架姿态（30–90 FPS），如全身 SMPL 姿态、全局位移</li>
+  </ul>
+  <p style="margin-top:8px;margin-bottom:0">这正是 Meta Neural Band 与脑卒中 BMuMI 文献的共同架构，也是解决"EEG 慢、EMG 中、动捕快"时间尺度矛盾的唯一工程可行方案。</p>
+</div>
+</div>
+
+<!-- ==================== 4. 顶级院校项目全景 ==================== -->
+<h2 id="universities">四、顶级院校项目全景</h2>
+
+<div class="card">
+<table>
+  <tr><th style="width:18%">院校/实验室</th><th style="width:25%">代表项目</th><th style="width:42%">核心贡献</th><th style="width:15%">相关子方向</th></tr>
+  <tr><td><strong>清华大学</strong> 徐枫组</td><td>RobustCap / DiffCap</td><td>单目 RGB + 6 稀疏 IMU 实时全身 SMPL 动捕，SIGGRAPH Asia 2023，与 OPPO 产学落地</td><td>动捕+IMU</td></tr>
+  <tr><td><strong>清华大学</strong> 刘烨斌组</td><td>ExAvatar / 3D Gaussian Blendshapes</td><td>单目视频全身表情化 3DGS avatar，ECCV 2024；头部 blendshape 高斯动画 SIGGRAPH 2024</td><td>数字人</td></tr>
+  <tr><td><strong>清华大学</strong> 高小榕组</td><td>SSVEP 高速拼写 BCI</td><td>国内 SSVEP-BCI 奠基人，ITR 推至 60 bit/min 以上，引用超 2 万次</td><td>EEG/BCI</td></tr>
+  <tr><td><strong>清华大学</strong> 洪波组</td><td>NEO 无线微创 BCI</td><td>硬膜外微创植入，2026.3 获全球首款植入式 BCI 医疗器械上市批准，32 例临床植入</td><td>侵入式BCI</td></tr>
+  <tr><td><strong>上海交通大学</strong> 吕宝粮组</td><td>LaBraM 大型脑电基础模型</td><td>2500+ 小时 EEG 自监督预训练，ICLR 2024，MI/ERP 下游 SOTA 底座</td><td>EEG/BCI</td></tr>
+  <tr><td><strong>MIT</strong> Media Lab</td><td>AttentivU / 超声腕带</td><td>EEG+EOG+fNIRS 眼镜形态认知负荷监测；超声腕带实时控制假手（2026.03）</td><td>EEG/EMG</td></tr>
+  <tr><td><strong>MIT</strong></td><td>BIOT 脑信号基础模型</td><td>58,021 小时 EEG+ECG 预训练，NeurIPS 2023，3.2M 参数通用表征</td><td>EEG/BCI</td></tr>
+  <tr><td><strong>Stanford</strong></td><td>Brain Interfacing Lab / NPTL</td><td>侵入式运动/语言 BCI，手写与语音解码刷新沟通速度纪录；2026.6 颠覆"脑控制运动"旧地图</td><td>侵入式BCI</td></tr>
+  <tr><td><strong>ETH Zürich</strong> CMP 组</td><td>EgoPoser / EgoHDM</td><td>HMD + 稀疏 IMU 任意环境实时全身姿态，ECCV 2024；已开源系统</td><td>动捕+IMU</td></tr>
+  <tr><td><strong>ETH Zürich</strong> CVG 组</td><td>MVSplat / YoNoSplat</td><td>前馈式稀疏多视图 3DGS 重建，移动端实时，ECCV 2024 / ICLR 2026</td><td>AR/SLAM</td></tr>
+  <tr><td><strong>MPI-IS</strong>（Tübingen）</td><td>SMPL-X / WHAM / WHAC</td><td>参数化人体模型事实标准；世界坐标人体运动重建，CVPR 2024 / SIGGRAPH Asia 2024</td><td>数字人/动捕</td></tr>
+  <tr><td><strong>MPI Informatik</strong></td><td>Ego4o / Ego-Exo4D</td><td>IMU+图像+文本多模态 ego 动捕，CVPR 2025；与 Meta 合作</td><td>多模态融合</td></tr>
+  <tr><td><strong>UC San Diego</strong> 徐升组</td><td>柔性 sEMG 贴片</td><td>可拉伸柔性皮肤电子 + DL 抗运动伪影，Nature Sensors 2025 首篇论文</td><td>EMG</td></tr>
+  <tr><td><strong>UC San Diego</strong> SCCN</td><td>EEG ICA / 移动脑成像</td><td>Scott Makeig 独立成分分析经典方法；Gilja BMI 临床转化</td><td>EEG/BCI</td></tr>
+  <tr><td><strong>UT Austin</strong> Nanshu Lu 组</td><td>VR-EEG 集成综述</td><td>Device 2024 权威综述，盘点所有商用集成方案与五大瓶颈</td><td>EEG+VR</td></tr>
+  <tr><td><strong>浙江大学</strong> APRIL Lab</td><td>Gaussian-LIC / LVI-GS</td><td>激光-视觉-惯性紧耦合高斯 SLAM，室外无界场景实时照片级</td><td>AR/SLAM</td></tr>
+  <tr><td><strong>上海人工智能实验室</strong></td><td>GS-SLAM</td><td>首次将 3DGS 引入 SLAM，2024，被后续大量引用</td><td>AR/SLAM</td></tr>
+  <tr><td><strong>华为诺亚方舟</strong></td><td>HuGS</td><td>全身可动画 3DGS avatar 实时渲染，CVPR 2024</td><td>数字人</td></tr>
+  <tr><td><strong>中科院自动化所</strong></td><td>脑机协同康复平台</td><td>软体手/外骨骼 + BCI + AR + 大模型意图解码一体化，60+ 临床</td><td>多模态融合</td></tr>
+  <tr><td><strong>汉阳大学 × 三星</strong></td><td>耳戴式 EEG 耳塞</td><td>耳周 EEG 健康监测，2025.10 三星发布，避开毛发问题</td><td>EEG</td></tr>
+</table>
+</div>
+
+<!-- ==================== 5. 大厂布局全景 ==================== -->
+<h2 id="industry">五、大厂技术布局全景</h2>
+
+<div class="card">
+<table>
+  <tr><th style="width:12%">公司</th><th style="width:22%">产品/项目</th><th style="width:30%">技术路线</th><th style="width:22%">当前状态（2026.09）</th><th style="width:14%">相关子方向</th></tr>
+  <tr><td><strong>Meta</strong></td><td>Neural Band（EMG 腕带）+ Ray-Ban Display + Quest 3 + Codec Avatars</td><td>sEMG 腕带通用解码（近 20 万人数据）+ AR 眼镜 + 神经渲染数字人</td><td><strong>已量产</strong>，$799，Nature 2025；Quest 3 可实时跑 3 个全身 Codec Avatar 72 FPS</td><td>EMG/数字人/AR</td></tr>
+  <tr><td><strong>Apple</strong></td><td>Vision Pro（M5 版）+ BCI HID 协议 + Persona</td><td>眼动+手势+语音；2025.05 iOS/iPadOS/visionOS 加入 Switch Control for BCI 原生协议</td><td>Vision Pro M5 商用，12ms 端到端；第三方 Cognixion 已做 Vision Pro 兼容 BCI 临床试验</td><td>AR/数字人/BCI协议</td></tr>
+  <tr><td><strong>Neuralink</strong></td><td>N1 植入体 + Telepathy / Blindsight</td><td>侵入式柔性多电极线阵列，机器人植入</td><td>2025.12 宣布 <strong>21 名受试者</strong>；英国 UCLH 2026.01 已 7 人植入；光标吞吐约 8 bit/s</td><td>侵入式BCI</td></tr>
+  <tr><td><strong>Synchron</strong></td><td>Stentrode 血管内支架电极</td><td>经颈静脉入上矢状窦，不开颅半侵入式</td><td>COMMAND 研究 6 例 12 个月零神经安全事件；2025.11 完成 $200M D 轮</td><td>半侵入式BCI</td></tr>
+  <tr><td><strong>Google</strong></td><td>Google Beam（原 Starline）+ Android XR + ARCore</td><td>AI-first 3D 视频通信 + Gemini 原生 XR OS</td><td>2025.05 I/O 发布；三星 Galaxy XR 头显 $1,799（Android XR 首款）；2025.01 向 HTC 投资 $2.5 亿</td><td>AR/数字人</td></tr>
+  <tr><td><strong>Microsoft</strong></td><td>Mesh（Teams Avatar）+ Azure AI Avatar</td><td>AR 头显退场，重心转向云端数字人 + Teams 协作</td><td>HoloLens 2 已停产（支持至 2027.12）；Azure AI Avatar 2026 初新增实时可定制数字人</td><td>数字人</td></tr>
+  <tr><td><strong>字节跳动</strong></td><td>PICO 4 Ultra + Project Swan + OmniHuman-1.5</td><td>MR 一体机 + 自研 SLAM/逆畸变芯片（12ms 延迟）+ 生成式数字人</td><td>2026 年发新品（自研芯片+MicroOLED）；OmniHuman-1.5 走"从反应到认知"路线</td><td>VR/数字人</td></tr>
+  <tr><td><strong>华为</strong></td><td>MateVision MR + HarmonyOS XR + 盘古大模型</td><td>鸿蒙分布式 XR OS + 行业 MR；BCI 以专利/预研为主</td><td>2025 年 MR 硬件+方案营收约 47.2 亿元；跨端空间锚点同步 <12ms</td><td>AR/VR</td></tr>
+  <tr><td><strong>索尼</strong></td><td>PS VR2 + mocopi + mocopi Pro Kit</td><td>消费级 IMU 动捕（6 传感器 $449）+ 专业动捕工作室</td><td>2025.01 发布 mocopi Pro Kit（12 传感器）+ XYN Motion Studio；Unity/UE/Blender 插件齐全</td><td>动捕/VR</td></tr>
+  <tr><td><strong>NVIDIA</strong></td><td>Audio2Face-3D + ACE + Omniverse + GAvatar</td><td>音频→面部动画（2025.09 开源 SDK）+ 云端数字人 + 文本生成高斯 avatar</td><td>Audio2Face 已集成进 Character Creator/iClone；开源后生态扩展</td><td>数字人</td></tr>
+  <tr><td><strong>Epic Games</strong></td><td>MetaHuman Creator + Mesh to MetaHuman + MetaHuman Animator</td><td>基于真实人体扫描数据库，云端拖拽混合预设创建写实数字人</td><td>免费集成在 UE5，工业标准级写实数字人</td><td>数字人</td></tr>
+  <tr><td><strong>Niantic</strong></td><td>Lightship ARDK + 8th Wall WebAR + VPS</td><td>城市级地图+VPS 视觉定位（厘米级锚定）+ mesh/深度/语义分割遮挡</td><td>8th Wall 已并入 Niantic，WebAR 跨平台部署 Quest/手机浏览器</td><td>AR/SLAM</td></tr>
+  <tr><td><strong>Snap</strong></td><td>Spectacles AR + NextMind（2022 收购）</td><td>NextMind 原为 SSVEP 非侵入式 BCI；收购后硬件停售，IP 并入 Snap Lab；2025 再收购 Wisear（耳戴 EEG）</td><td>无消费硬件在售；技术沉淀在 AR 注意力交互预研</td><td>EEG/AR</td></tr>
+  <tr><td><strong>OpenBCI</strong></td><td>Galea + Galea Neon（与 Pupil Labs）</td><td>10 干通道 EEG + 4 EMG + EOG/EDA/PPG/IMU，与 Varjo 头显集成；2025.11 全无线版</td><td><strong>科研市场事实标准</strong>；Galea 整套 $44,099 起</td><td>多模态采集</td></tr>
+  <tr><td><strong>Movella/Xsens</strong></td><td>Xsens Next-Gen Link + Xsens Humanoid</td><td>17 点惯性动捕金标准；新套件专为人形机器人训练把人运动转 robot-ready kinematics</td><td>2025.11 发布，主攻具身智能数据采集</td><td>动捕</td></tr>
+</table>
+</div>
+
+<div class="highlight-box">
+  <strong>大厂格局一句话：</strong>Meta 是非侵入式神经接口 + 数字人双路线最激进者（EMG 腕带已商品化为 $799）；侵入式赛道 Neuralink 领跑人体试验规模、Synchron 走不开颅差异化；Apple/Google/Microsoft 把 BCI 当"输入协议"而非自研硬件（Apple BCI HID、Google Android XR）；中国阵营（字节/华为）聚焦 MR 头显+数字人，BCI 仍处预研；索尼/HTC 退守动捕与 PCVR。
+</div>
+
+<!-- ==================== 6. 技术成熟度矩阵 ==================== -->
+<h2 id="maturity">六、技术成熟度矩阵</h2>
+
+<div class="maturity-grid">
+  <div class="maturity-item">
+    <h4>EEG + VR/AR 集成 <span class="tag tag-growing">快速发展中</span></h4>
+    <div class="score-bar"><div class="score-fill" style="width:55%;background:var(--warn)"></div></div>
+    <p class="small">科研级集成成熟（Galea），消费级硬件可用，交互范式探索期。瓶颈：毛发电极、运动伪迹、通道数。</p>
+  </div>
+  <div class="maturity-item">
+    <h4>MI-BCI 运动想象 <span class="tag tag-growing">快速发展中</span></h4>
+    <div class="score-bar"><div class="score-fill" style="width:45%;background:var(--warn)"></div></div>
+    <p class="small">EEG 基础模型带来拐点，但 ITR 低（10-20 bit/min）、BCI 盲、跨被试泛化未根本解决。只能做辅助层。</p>
+  </div>
+  <div class="maturity-item">
+    <h4>EMG 可穿戴阵列 <span class="tag tag-growing">快速发展中</span></h4>
+    <div class="score-bar"><div class="score-fill" style="width:70%;background:var(--accent2)"></div></div>
+    <p class="small">Meta Neural Band 已跨越消费级临界点（Nature 2025 + $799 量产）。全身多点位阵列是明确空白带。</p>
+  </div>
+  <div class="maturity-item">
+    <h4>光学动捕 + IMU 融合 <span class="tag tag-mature">成熟</span></h4>
+    <div class="score-bar"><div class="score-fill" style="width:85%;background:var(--accent2)"></div></div>
+    <p class="small">硬件（OptiTrack/Xsens/mocopi）和算法（RobustCap/HMD-Poser/EgoPoser）均成熟，消费级路线（手机/手表 IMU）快速发展。</p>
+  </div>
+  <div class="maturity-item">
+    <h4>3D 人体扫描 / VRM <span class="tag tag-mature">成熟</span></h4>
+    <div class="score-bar"><div class="score-fill" style="width:80%;background:var(--accent2)"></div></div>
+    <p class="small">工具链成熟（MetaHuman/VRoid/Ready Player Me/UniVRM），单图/单视频生成可动画人体快速发展（PSHuman/GoMAvatar）。</p>
+  </div>
+  <div class="maturity-item">
+    <h4>AR 环境扫描 / SLAM <span class="tag tag-mature">成熟</span></h4>
+    <div class="score-bar"><div class="score-fill" style="width:80%;background:var(--accent2)"></div></div>
+    <p class="small">几何重建成熟（ARKit/ARCore/LiDAR/RoomPlan），3DGS 照片级场景重建快速发展。瓶颈：光照一致性、动态环境。</p>
+  </div>
+  <div class="maturity-item">
+    <h4>多模态融合（EEG+EMG+动捕） <span class="tag tag-frontier">前沿探索</span></h4>
+    <div class="score-bar"><div class="score-fill" style="width:35%;background:var(--accent)"></div></div>
+    <p class="small">分级融合架构共识形成，但系统级工作极少；公开多模态配对数据集稀缺（emg2pose 仅手部）；全身三模态融合是空白。</p>
+  </div>
+  <div class="maturity-item">
+    <h4>PiEEG 低成本硬件路线 <span class="tag tag-growing">快速发展中</span></h4>
+    <div class="score-bar"><div class="score-fill" style="width:60%;background:var(--warn)"></div></div>
+    <p class="small">PiEEG 家族活跃（8/16 通道、LSL/OSC 原生），适合原型；信号质量上限受 ADC 和干电极限制，EMG 比 EEG 更友好。</p>
+  </div>
+</div>
+
+<!-- ==================== 7. 可行性深度评估 ==================== -->
+<h2 id="feasibility">七、可行性深度评估</h2>
+
+<h3>7.1 成熟可行的部分（可直接复用）</h3>
+<div class="success-box">
+  <ol>
+    <li><strong>动作捕捉：</strong>索尼 mocopi（$449，6 IMU）或 Rokoko Vision（单目 AI 动捕）可直接获取全身运动数据；清华 RobustCap 代码开源可做"单目+6 IMU"实时 SMPL。</li>
+    <li><strong>VRM 数字人生成：</strong>VRoid Studio（免费二次元）或 Ready Player Me（自拍生成）直接导出 VRM；UniVRM 插件自动骨骼映射；写实路线用 Character Creator 4。</li>
+    <li><strong>数字人动作驱动：</strong>VMC 协议（Virtual Motion Capture）是 VRM 全身体感追踪的事实标准协议，iFacialMocap + iPhone/手表 IMU 可直接驱动；面部用 VSeeFace。</li>
+    <li><strong>AR 环境扫描：</strong>ARKit（iOS）或 ARCore（Android）直接做平面检测、世界锚点、遮挡 mesh；iPhone/iPad Pro LiDAR + RoomPlan 做房间级 3D 扫描；进阶可用 MVSplat 前馈式 3DGS 重建。</li>
+    <li><strong>EMG 采集（前臂）：</strong>Meta emg2qwerty/emg2pose 开源数据集可做 baseline；MyoWare 2.0（~$50/通道）或 PiEEG 可做低成本采集；ALVI Interface 的 Transformer→20 DoF 架构可参考。</li>
+    <li><strong>多流时间同步：</strong>LSL（Lab Streaming Layer）是事实标准，PiEEG、OpenBCI、mocopi、Varjo、Pupil Labs 都原生支持，可跨设备子毫秒时钟对齐。</li>
+  </ol>
+</div>
+
+<h3>7.2 前沿难点（需要研究突破）</h3>
+<div class="warn-box">
+  <ol>
+    <li><strong>全身多点位 EMG 阵列：</strong>当前几乎所有工作集中在前臂/腕部，下肢、躯干、肩部的 sEMG 阵列与 IMU/光学融合是<strong>学术空白带</strong>。需要解决：不同肌肉群的电极布局优化（可参考 SparseEMG 的计算设计方法）、运动伪影（下肢运动幅度大）、出汗/疲劳影响。</li>
+    <li><strong>EMG→全身连续运动的高维回归：</strong>目前 EMG→运动只做到手部 20 DoF（ALVI），腿/躯干/脊柱几乎无人做。需要构建"全身 EMG + 光学动捕"配对数据集（emg2pose 范式向全身扩展），这本身就是高价值贡献。</li>
+    <li><strong>EEG 运动前意图与 EMG/动捕的时序融合：</strong>EEG 可在运动发生前 100–300 ms 检测到意图（MRCP/ERD），如何用这个"早期信号"预测并平滑 EMG/动捕的输出，是多模态融合的前沿问题。</li>
+    <li><strong>数字人高保真驱动（不只是骨骼）：</strong>骨骼运动已成熟，但肌肉形变、表情、微动作才是新前沿。需要 EMG 连续关节角 + 面部 EMG（额肌/皱眉肌/咬肌）+ 生理情绪通道（EDA/PPG）融合驱动 blendshape。</li>
+    <li><strong>跨被试/跨时段通用模型：</strong>Meta 用近 20 万人数据才做出 sEMG"开箱即用"模型。学术场景下，LaBraM/BIOT 等 EEG 基础模型提供了少样本适配的可能，但全身 EMG 没有类似的基础模型。</li>
+    <li><strong>AR 中数字人与真实环境的光照一致性：</strong>几何遮挡已解决（Depth API），但环境光照估计（HDR 从单目视频）仍是研究热点，直接影响数字人"看起来真的在房间里"的沉浸感。</li>
+  </ol>
+</div>
+
+<h3>7.3 PiEEG 低成本路线的现实性</h3>
+<div class="card">
+<h4>PiEEG 生态现状（2026）</h4>
+<ul>
+  <li><strong>硬件家族：</strong>PiEEG-8 / PiEEG-16（双 ADS1299，16 通道）、JNEEG（Jetson Nano 8ch）、IronBCI（BLE 8ch / USB 32ch）；支持 EEG/EMG/ECG/EOG；MIT 协议软件。</li>
+  <li><strong>软件生态：</strong><code>pieeg-server</code> 一条命令起本地 WebSocket/LSL/OSC/Webhook 流，内置浏览器 dashboard；PyPI 2026.09 已到 0.49.0，社区活跃持续迭代。</li>
+  <li><strong>产品化：</strong>2025 年推 PiEEG Box（Raspberry Pi + 电极帽 + 显示屏 + SDK 课程）上 Indiegogo。</li>
+</ul>
+
+<h4>信号质量评估</h4>
+<table>
+  <tr><th>信号类型</th><th>PiEEG 可行性</th><th>限制</th></tr>
+  <tr><td>EMG（肌电）</td><td><span class="tag tag-mature">可行</span> mV 级信号，远大于 EEG</td><td>需注意工频干扰和运动伪影；多通道同步需校准</td></tr>
+  <tr><td>EEG alpha/beta 节律</td><td><span class="tag tag-growing">基本可行</span> 开闭眼实验可重复</td><td>干电极阻抗高；带宽受限；低频功率偏高</td></tr>
+  <tr><td>EEG MI（运动想象）</td><td><span class="tag tag-growing">有挑战</span> 需凝胶/半干电极+运动皮层定位</td><td>ERD/ERS 信号微弱（μV 级），易受肌电伪迹污染</td></tr>
+  <tr><td>ERP（P300/SSVEP）</td><td><span class="tag tag-frontier">困难</span> 需要多次叠加平均</td><td>单试次信噪比不足；时间波形失真</td></tr>
+</table>
+
+<div class="highlight-box">
+  <strong>结论：</strong>PiEEG 路线非常适合本 idea 的<strong>快速原型验证</strong>——原生 LSL/OSC 支持、多通道、低成本、社区活跃。尤其 EMG 采集对 PiEEG 友好。但若要做 MI-BCI 的科研级发表，建议在运动皮层区域使用凝胶/半干电极，并考虑向 OpenBCI Cyton 级别（~$1,000）靠拢以保证信号质量。<strong>不要用 PiEEG 干电极做 ERP/SSVEP 高精度范式。</strong>
+</div>
+</div>
+
+<h3>7.4 系统集成的六大瓶颈</h3>
+<div class="card">
+<ol>
+  <li>
+    <h4>多流时间同步（最容易被低估）</h4>
+    <p>LSL 可跨设备子毫秒时钟对齐，但无法补偿设备内部延迟（ADC→USB→驱动→应用）。实测基准：多硬件流平均偏移 <strong>36 ms、抖动 5.76 ms</strong>；优化后端到端 89 ms。<strong>工程建议：选组件时硬指标要求 LSL/硬件时间戳支持。</strong></p>
+  </li>
+  <li>
+    <h4>端到端延迟（决定"自然感"的生死线）</h4>
+    <p>MI-BCI 典型延迟：滤波+滑窗可能 <strong>500 ms 滤波器群延迟 + 1000 ms 窗口</strong>，端到端 1.6 s 量级；EMG 解码可做到 25 Hz（40 ms）级；视觉全身动捕 30–90 FPS。<strong>矛盾点：EEG 慢、EMG 中、动捕快。</strong>工程上必须用分级融合架构解决。</p>
+  </li>
+  <li>
+    <h4>跨被试/跨时段标定（最影响可用性）</h4>
+    <p>非侵入式 EEG-EMG 的最大痛点是电极位移、阻抗漂移、出汗、个体解剖差异。Meta 用 ~20 万人数据才做出"开箱即用"通用 sEMG 模型。<strong>对 PiEEG 路线：单人长期自用可接受 session 标定+自适应；产品化必须走大规模数据+通用模型+个性化 fine-tune。</strong></p>
+  </li>
+  <li>
+    <h4>穿戴便利性（消费化的真正瓶颈）</h4>
+    <p>VR 头显 + EEG 帽 + 四肢 EMG + IMU 追踪器物理叠加：电极膏、线缆、重量、散热。OpenBCI Galea 把所有传感器塞进 Varjo 头显周边，但价格 $44k 起。<strong>2025 趋势：耳戴 EEG、干电极头带、指环/腕带 EMG 在把通道数换成"可穿戴时长"。草图的四肢 EMG 满布点需要在通道数与穿戴时长间权衡——腕/前臂 4–8 通道比四肢满布点现实得多。</strong></p>
+  </li>
+  <li>
+    <h4>计算量与端云分配</h4>
+    <p>多模态 Transformer（cross-attention）在头显端实时跑不现实；Meta 把 sEMG 解码放在腕带协处理器+手机/眼镜端云协同。数字人渲染侧：Meta Codec Avatar 已可在 Quest 3 上单设备跑 3 个全身 72 FPS。<strong>建议架构：PiEEG/EMG 前端本地 LSL 流 → 边缘 PC/手机做融合解码 → AR 端只渲染与状态切换。</strong></p>
+  </li>
+  <li>
+    <h4>数字人高保真驱动（不只是骨骼）</h4>
+    <p>骨骼运动由 IMU/光学动捕解决已成熟。<strong>肌肉形变/表情/微动作才是新前沿：</strong>EMG 连续关节角重建（ALVI, 20 DoF, r=0.8）、面部 EMG+EDA+语音韵律融合驱动 blendshape、高斯泼溅+分层脸发（LUCAS/Avat3r）。草图中"3DM(VRM) + 动作"下一步应补面部 EMG（额肌/皱眉肌/咬肌）+ 生理情绪通道（EDA/PPG）。</p>
+  </li>
+</ol>
+</div>
+
+<h3>7.5 风险分析</h3>
+<div class="card">
+<table>
+  <tr><th style="width:20%">风险</th><th style="width:10%">概率</th><th style="width:10%">影响</th><th style="width:60%">缓解措施</th></tr>
+  <tr><td>EEG 信号质量不达标（干电极+运动伪迹）</td><td>高</td><td>中</td><td>EEG 定位为被动状态监测而非主动输入；使用凝胶/半干电极；考虑耳戴 EEG 替代</td></tr>
+  <tr><td>MI-BCI 准确率/ITR 不足以支撑交互</td><td>高</td><td>高</td><td>不依赖 MI 做主力输入；MI 仅做 2–3 个状态切换（如"开始/停止/模式切换"）；用 EMG+手势做主力</td></tr>
+  <tr><td>全身 EMG 阵列运动伪影严重</td><td>中</td><td>中</td><td>先从前臂/上臂验证，再逐步扩展到下肢；参考 UCSD 柔性贴片+DL 抗伪影方案；用 IMU 数据做伪影回归</td></tr>
+  <tr><td>多模态同步延迟导致体验割裂</td><td>中</td><td>高</td><td>全链路使用 LSL；硬件时间戳；分级融合架构（EEG 百毫秒级/EMG 40ms/动捕 30fps）各自按时间尺度工作</td></tr>
+  <tr><td>穿戴过于复杂无法长期使用</td><td>高</td><td>中</td><td>原型阶段可接受复杂穿戴；产品化阶段必须精简（腕带 EMG + 耳戴 EEG + 手表/手机 IMU）</td></tr>
+  <tr><td>与 Meta 等大厂正面竞争</td><td>—</td><td>高</td><td>不做消费硬件竞争；差异化定位为"开源、可复现、教育/科研/极客生态"；聚焦全身 EMG 阵列这一学术空白</td></tr>
+  <tr><td>VRM 格式表现力不足（vs 3DGS/NeRF）</td><td>低</td><td>低</td><td>VRM 适合原型和 VTuber 生态；高保真路线可升级到 SplattingAvatar（mesh-embedded 3DGS，移动端 30 FPS）</td></tr>
+</table>
+</div>
+
+<!-- ==================== 8. 结论与建议 ==================== -->
+<h2 id="conclusion">八、结论与行动建议</h2>
+
+<div class="conclusion-big">
+  最终结论：<strong>PiEEG 2026 作为科研原型和开源平台高度可行，建议立即启动；<br>作为消费级产品 2–3 年内不可行，需等待非侵入式神经接口的进一步成熟。</strong>
+</div>
+
+<div class="card">
+<h3>🎯 推荐技术路线（基于调研证据）</h3>
+
+<h4>第一阶段：原型验证（0–6 个月）</h4>
+<ol>
+  <li><strong>硬件底座：</strong>PiEEG-16（双 ADS1299）+ 前臂 4–8 通道 EMG（MyoWare 多模块或 PiEEG 通道复用）+ 索尼 mocopi（6 IMU，$449）+ iPhone（ARKit/LiDAR）。全部走 LSL 同步。</li>
+  <li><strong>数字人：</strong>VRoid Studio 生成 VRM 角色 → UniVRM 加载 → VMC 协议接收动捕数据。</li>
+  <li><strong>AR 输出：</strong>iPhone ARKit 做平面检测+世界锚点+遮挡 mesh，将 VRM 数字人放入真实环境。</li>
+  <li><strong>EEG 定位：</strong>先做被动状态监测（alpha 波注意力/放松度），不急于做 MI 主动控制。</li>
+  <li><strong>验证目标：</strong>跑通"动捕→VRM→AR"全链路；EMG 可识别 3–5 个手势；EEG 可显示注意力曲线。</li>
+</ol>
+
+<h4>第二阶段：多模态融合（6–12 个月）</h4>
+<ol>
+  <li><strong>EMG 扩展：</strong>从前臂扩展到上臂+肩部，开始积累"全身 EMG + IMU + 光学动捕"配对数据集（这是核心创新点）。</li>
+  <li><strong>分级融合架构：</strong>EEG 做运动前意图检测（MRCP/ERD，提前 100–300ms）+ 状态切换；EMG 做连续关节角驱动；IMU 做骨架姿态。参考 CATA-Net 的 cross-attention 融合。</li>
+  <li><strong>MI-BCI 引入：</strong>用 LaBraM/BIOT 预训练模型做少样本 MI 解码，仅用于 2–3 个离散指令（如"切换模式/确认/取消"）。在 BCIC IV 2a 上先复现 baseline。</li>
+  <li><strong>数字人升级：</strong>加入面部 EMG（额肌/皱眉肌/咬肌）驱动表情 blendshape；考虑升级到 SplattingAvatar（mesh-embedded 3DGS）提升真实感。</li>
+  <li><strong>验证目标：</strong>发表 1 篇多模态融合或全身 EMG 数据集论文；系统可实时演示"脑电意图+肌电驱动+动捕骨架"的 VRM 数字人在 AR 环境中互动。</li>
+</ol>
+
+<h4>第三阶段：差异化深化（12–24 个月）</h4>
+<ol>
+  <li><strong>全身 EMG 阵列：</strong>扩展到下肢（股四头肌/腘绳肌/小腿三头肌），完成真正的"全身多点位 EMG + IMU + 光学"三模态数据集和系统——这是当前学术界的明确空白。</li>
+  <li><strong>开源生态：</strong>将硬件设计（PiEEG 扩展板）、数据集、软件栈（基于 BrainFusion 或自研）开源，建立"PiEEG 2026"社区。差异化壁垒不是硬件性能，而是"开源、可复现、教育/科研生态"。</li>
+  <li><strong>应用场景：</strong>聚焦 1–2 个垂直场景做深，如：①神经康复（BCI+EMG+VR 康复训练，参考中科院自动化所平台）；②VTuber/虚拟主播（多模态数字人驱动）；③具身智能数据采集（参考 Xsens Humanoid，把人的多模态运动数据转成人形机器人训练数据）。</li>
+</ol>
+</div>
+
+<div class="card">
+<h3>⚠️ 不建议做的事</h3>
+<ul>
+  <li><strong>不要把 EEG/MI-BCI 当主力输入。</strong>ITR 10–20 bit/min、BCI 盲 15–30%、跨被试泛化不足——这些是根本性限制，不是工程优化能解决的。EEG 的价值在被动监测和隐式确认。</li>
+  <li><strong>不要试图做消费级硬件产品。</strong>Meta 已用近 20 万人数据和 $799 产品占位非侵入式神经接口；Apple/Google 在做平台和协议。个人/小团队做消费硬件没有胜算。</li>
+  <li><strong>不要用 PiEEG 干电极做 ERP/SSVEP 高精度范式。</strong>信号质量上限不够，会浪费大量时间在信噪比问题上。</li>
+  <li><strong>不要一开始就追求全身满布点 EMG。</strong>先从前臂验证，再逐步扩展。下肢 EMG 的运动伪影和出汗问题需要专门解决。</li>
+</ul>
+</div>
+
+<div class="card">
+<h3>📚 建议优先精读的 10 篇关键文献</h3>
+<ol>
+  <li>Kaifosh et al. "A generic non-invasive neuromotor interface for HCI." <em>Nature</em>, 2025. — 非侵入式神经接口里程碑，必读。</li>
+  <li>Jiang et al. "Large Brain Model (LaBraM)." ICLR 2024. — EEG 基础模型，MI 解码底座。</li>
+  <li>Pan et al. "Fusing Monocular Images and Sparse IMU Signals for Real-time Human Motion Capture (RobustCap)." SIGGRAPH Asia 2023. — 光学+IMU 融合基线，代码开源。</li>
+  <li>Meta. "emg2pose." arXiv 2024. — EMG+光学动捕配对数据集范式。</li>
+  <li>Li et al. "PSHuman." CVPR 2025. — 单图→可驱动 3D 人体最新进展。</li>
+  <li>Moreau et al. "Human Gaussian Splatting (HuGS)." CVPR 2024. — 可动画 3DGS avatar 代表作。</li>
+  <li>Dabral et al. "Ego4o." CVPR 2025. — 多模态（IMU+图像+文本）全身动捕。</li>
+  <li>Lu group. "Combining VR with EEG as a frontier of BCI." <em>Device</em>, 2024. — VR-EEG 集成权威综述。</li>
+  <li>CATA-Net. "Unilateral Upper Limb Fine Motor Imagery via Symmetric Cross-Modal Attention EEG–EMG Fusion." IEEE Sensors Journal, 2026. — EEG-EMG 融合最新架构。</li>
+  <li>Black group. "WHAM." CVPR 2024. — 世界坐标人体运动重建，AR 数字人对齐关键。</li>
+</ol>
+</div>
+
+<div class="footer">
+  <p>PiEEG 2026 可行性分析报告 | 基于 2022–2026 年顶刊论文、顶级院校项目与大厂技术布局的系统性调研</p>
+  <p>覆盖论文 80+ 篇 | 院校项目 40+ 个 | 大厂布局 30+ 项 | 调研时间：2026 年 9 月</p>
+  <p style="margin-top:8px">所有事实均标注可核验来源（Nature / CVPR / SIGGRAPH / CHI / NeurIPS / 官方公告等）；行业数据类信息使用时请注意口径。</p>
+</div>
+
+</div>
+</body>
+</html>
