@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rove 角色生成工作台</title>
+<style>
+  :root {
+    --bg: #0f1216;
+    --bg-soft: #151a21;
+    --panel: #1a2029;
+    --panel-2: #212934;
+    --line: #2c3542;
+    --text: #e8edf3;
+    --text-dim: #9aa7b6;
+    --text-faint: #6d7a8a;
+    --accent: #6ea8ff;
+    --accent-2: #7ee0c0;
+    --warn: #f0b45a;
+    --bad: #f27c7c;
+    --good: #6fd08c;
+    --radius: 12px;
+    --shadow: 0 10px 30px rgba(0,0,0,.28);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: radial-gradient(1200px 700px at 12% -10%, #1b2431 0%, var(--bg) 55%);
+    color: var(--text);
+    font: 15px/1.6 "PingFang SC", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  button {
+    font: inherit; color: var(--text); cursor: pointer;
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 9px; padding: 8px 14px; transition: .15s;
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: linear-gradient(180deg, #3b6dc9, #2f57a3); border-color: #4a7ede; }
+  button.primary:hover { filter: brightness(1.08); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  code, .mono { font-family: "Cascadia Code", "Consolas", monospace; font-size: 12.5px; }
+
+  header.top {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 16px 24px; border-bottom: 1px solid var(--line);
+    background: rgba(15,18,22,.82); backdrop-filter: blur(8px);
+    position: sticky; top: 0; z-index: 20;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand .dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent-2); box-shadow: 0 0 12px rgba(126,224,192,.7);
+  }
+  .brand h1 { font-size: 18px; margin: 0; letter-spacing: .5px; font-weight: 650; }
+  .brand .sub { color: var(--text-dim); font-size: 12.5px; }
+  .top .spacer { flex: 1; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 999px; font-size: 12.5px;
+    border: 1px solid var(--line); background: var(--panel); color: var(--text-dim);
+  }
+  .pill.ok { color: var(--good); border-color: rgba(111,208,140,.4); }
+  .pill.warn { color: var(--warn); border-color: rgba(240,180,90,.4); }
+  .pill.bad { color: var(--bad); border-color: rgba(242,124,124,.4); }
+  .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+  nav.tabs { display: flex; gap: 6px; padding: 12px 24px 0; }
+  nav.tabs button {
+    background: transparent; border: 1px solid transparent; border-bottom: none;
+    border-radius: 10px 10px 0 0; color: var(--text-dim); padding: 9px 16px;
+  }
+  nav.tabs button.active { background: var(--bg-soft); border-color: var(--line); color: var(--text); }
+
+  main { padding: 18px 24px 60px; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .layout { display: grid; grid-template-columns: 310px minmax(0, 1fr); gap: 18px; align-items: start; }
+  @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: linear-gradient(180deg, var(--panel), var(--bg-soft));
+    border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+  }
+  .panel > h2 {
+    margin: 0; padding: 14px 16px; font-size: 14px; letter-spacing: .6px;
+    color: var(--text-dim); border-bottom: 1px solid var(--line); font-weight: 600;
+  }
+  .panel .body { padding: 14px 16px; }
+
+  .job-list { display: flex; flex-direction: column; gap: 8px; max-height: 72vh; overflow: auto; padding: 10px; }
+  .job-item {
+    display: grid; grid-template-columns: 56px 1fr; gap: 10px; align-items: center;
+    padding: 8px; border-radius: 10px; border: 1px solid transparent; cursor: pointer;
+    background: rgba(255,255,255,.02); transition: .15s;
+  }
+  .job-item:hover { border-color: var(--line); background: rgba(255,255,255,.045); }
+  .job-item.active { border-color: var(--accent); background: rgba(110,168,255,.10); }
+  .job-item .thumb {
+    width: 56px; height: 72px; border-radius: 8px; overflow: hidden; background: #0b0e12;
+    display: flex; align-items: center; justify-content: center; border: 1px solid var(--line);
+  }
+  .job-item .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .job-item .meta { min-width: 0; }
+  .job-item .id { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .job-item .line2 { display: flex; gap: 6px; align-items: center; margin-top: 2px; flex-wrap: wrap; }
+  .job-item .time { color: var(--text-faint); font-size: 11.5px; }
+
+  .status { font-size: 11.5px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--text-dim); }
+  .status.SUCCEEDED, .status.done { color: var(--good); border-color: rgba(111,208,140,.45); }
+  .status.RUNNING, .status.running, .status.partial { color: var(--warn); border-color: rgba(240,180,90,.45); }
+  .status.FAILED, .status.failed, .status.missing { color: var(--bad); border-color: rgba(242,124,124,.45); }
+
+  .detail-head { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; padding: 16px; border-bottom: 1px solid var(--line); }
+  .detail-head h2 { margin: 0 0 4px; font-size: 20px; letter-spacing: .3px; }
+  .detail-head .sub { color: var(--text-dim); font-size: 13px; }
+  .metric-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+  .metric {
+    min-width: 92px; padding: 8px 12px; border-radius: 10px;
+    background: rgba(255,255,255,.03); border: 1px solid var(--line);
+  }
+  .metric .k { color: var(--text-faint); font-size: 11.5px; letter-spacing: .4px; }
+  .metric .v { font-size: 17px; font-weight: 650; margin-top: 1px; }
+  .metric .v small { font-size: 12px; color: var(--text-dim); font-weight: 400; }
+
+  .stages { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+  .stage {
+    border: 1px solid var(--line); border-radius: 12px;
+    background: rgba(255,255,255,.015); overflow: hidden;
+  }
+  .stage > .head {
+    display: flex; align-items: center; gap: 10px; padding: 11px 14px;
+    border-bottom: 1px solid var(--line); background: rgba(255,255,255,.02);
+  }
+  .stage > .head .idx {
+    width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center;
+    background: rgba(110,168,255,.14); color: var(--accent); font-size: 12px; font-weight: 700;
+  }
+  .stage > .head .title { font-weight: 600; font-size: 14px; }
+  .stage > .head .spacer { flex: 1; }
+  .stage .body { padding: 12px 14px; }
+  .stage .summary { color: var(--text-dim); font-size: 13px; margin-bottom: 8px; }
+  .stage .notes { margin: 8px 0 0; padding-left: 18px; color: var(--text-faint); font-size: 12.5px; }
+  .stage .notes li { margin: 2px 0; }
+
+  .artifacts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .art {
+    border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #0b0e12;
+    display: flex; flex-direction: column;
+  }
+  .art .imgwrap { aspect-ratio: 3 / 4; display: grid; place-items: center; overflow: hidden; cursor: zoom-in; }
+  .art .imgwrap img { width: 100%; height: 100%; object-fit: contain; background: #0b0e12; }
+  .art .imgwrap .placeholder { color: var(--text-faint); font-size: 12px; padding: 10px; text-align: center; }
+  .art .cap { padding: 7px 9px; font-size: 12px; border-top: 1px solid var(--line); }
+  .art .cap .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .art .cap .sz { color: var(--text-faint); font-size: 11px; }
+  .art a.dl { color: var(--accent); font-size: 11.5px; }
+
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .chip { font-size: 11.5px; padding: 2px 9px; border-radius: 999px; background: rgba(110,168,255,.10); border: 1px solid rgba(110,168,255,.28); color: #a9c9ff; }
+  .chip.missing { background: rgba(242,124,124,.10); border-color: rgba(242,124,124,.3); color: #f4aaaa; }
+  .chip.done { background: rgba(111,208,140,.10); border-color: rgba(111,208,140,.3); color: #9fe0b2; }
+
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .card { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); padding: 14px; }
+  .card h3 { margin: 0 0 8px; font-size: 14px; }
+  .kv { display: grid; grid-template-columns: 96px 1fr; gap: 4px 8px; font-size: 12.5px; }
+  .kv .k { color: var(--text-faint); }
+  .kv .v { word-break: break-all; }
+
+  .qc-versions { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  .qc-versions button.active { border-color: var(--accent); background: rgba(110,168,255,.12); }
+  .qc-sheet { padding: 12px 16px; }
+  .qc-sheet img { width: 100%; border-radius: 10px; border: 1px solid var(--line); background: #0b0e12; }
+  .qc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; padding: 4px 16px 18px; }
+  .qc-card { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); overflow: hidden; }
+  .qc-card .imgs { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--line); }
+  .qc-card .imgs figure { margin: 0; background: #0b0e12; }
+  .qc-card .imgs img { width: 100%; height: 170px; object-fit: contain; display: block; cursor: zoom-in; }
+  .comparison-sheet { width: 100%; max-height: 520px; object-fit: contain; background: #0b0e12; border: 1px solid var(--line); border-radius: 10px; cursor: zoom-in; }
+  .comparison-models { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 12px; }
+  .comparison-models figure { margin: 0; background: rgba(255,255,255,.03); border: 1px solid var(--line); border-radius: 8px; padding: 6px; }
+  .comparison-models img { width: 100%; height: 130px; object-fit: contain; background: #0b0e12; cursor: zoom-in; }
+  .comparison-models figcaption { color: var(--text-dim); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .qc-card .imgs figcaption { font-size: 10.5px; color: var(--text-faint); text-align: center; padding: 3px; }
+  .qc-card .info { padding: 9px 11px; }
+  .qc-card .info .t { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .qc-card .info .m { color: var(--text-faint); font-size: 11.5px; margin-top: 2px; }
+
+  .upload { max-width: 720px; }
+  .drop {
+    border: 1.5px dashed var(--line); border-radius: 14px; padding: 26px; text-align: center;
+    color: var(--text-dim); background: rgba(255,255,255,.02); cursor: pointer;
+  }
+  .drop:hover { border-color: var(--accent); }
+  .preview { margin-top: 12px; }
+  .preview img { max-width: 220px; border-radius: 10px; border: 1px solid var(--line); background: #0b0e12; }
+  .log { margin-top: 14px; background: #0a0d11; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-family: "Cascadia Code", Consolas, monospace; font-size: 12.5px; white-space: pre-wrap; max-height: 240px; overflow: auto; color: var(--text-dim); }
+
+  .empty { padding: 30px; text-align: center; color: var(--text-faint); }
+  .lightbox {
+    position: fixed; inset: 0; background: rgba(4,6,9,.86); display: none;
+    align-items: center; justify-content: center; z-index: 100; padding: 30px;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox img { max-width: 92vw; max-height: 86vh; border-radius: 10px; box-shadow: var(--shadow); }
+  .lightbox .close { position: absolute; top: 18px; right: 22px; font-size: 26px; color: #fff; background: none; border: none; }
+  .lightbox .cap { position: absolute; bottom: 18px; left: 0; right: 0; text-align: center; color: var(--text-dim); font-size: 13px; }
+
+  .brush-layout { grid-template-columns: 300px minmax(0, 1fr); }
+  .brush-views { display: flex; flex-direction: column; gap: 8px; padding: 10px; }
+  .brush-view {
+    display: grid; grid-template-columns: 52px 1fr auto; gap: 9px; align-items: center;
+    padding: 6px; border-radius: 10px; border: 1px solid transparent; cursor: pointer;
+    background: rgba(255,255,255,.02); transition: .15s;
+  }
+  .brush-view:hover { border-color: var(--line); }
+  .brush-view.active { border-color: var(--accent); background: rgba(110,168,255,.10); }
+  .brush-view img { width: 52px; height: 66px; object-fit: contain; background: #0b0e12; border-radius: 6px; border: 1px solid var(--line); }
+  .brush-view .nm { font-size: 13px; font-weight: 600; }
+  .brush-view .st { font-size: 11.5px; color: var(--text-faint); }
+  .brush-view .st.edited { color: var(--good); }
+  .brush-toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .brush-toolbar button.active { border-color: var(--accent); background: rgba(110,168,255,.12); }
+  .brush-size { display: flex; align-items: center; gap: 8px; color: var(--text-dim); font-size: 12.5px; }
+  .brush-size input { width: 120px; }
+  .canvas-wrap {
+    position: relative; display: flex; justify-content: center; align-items: flex-start; border: 1px solid var(--line);
+    border-radius: 12px; overflow: auto; max-height: 72vh; min-height: 360px;
+    background: repeating-conic-gradient(#1a2029 0% 25%, #151a21 0% 50%) 50% / 24px 24px;
+  }
+  #brushCanvas { display: none; width: auto; height: auto; max-width: none; flex: none; touch-action: none; cursor: crosshair; }
+  .canvas-wrap .empty { position: absolute; inset: 0; display: grid; place-items: center; }
+  .brush-hint { margin-top: 10px; color: var(--text-faint); font-size: 12.5px; min-height: 18px; }
+
+  footer { padding: 10px 24px 30px; color: var(--text-faint); font-size: 12px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <span class="dot"></span>
+    <div>
+      <h1>Rove 角色生成工作台</h1>
+      <div class="sub">照片 → 抠图 → 多视图几何 → GLB，每一步都留痕</div>
+    </div>
+  </div>
+  <span class="spacer"></span>
+  <span class="pill" id="serverPill"><span class="dot"></span><span>连接中…</span></span>
+  <span class="pill" id="providerPill">生成后端：—</span>
+  <button id="refreshBtn">刷新</button>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-view="jobs" class="active">任务与阶段</button>
+  <button data-view="qc">抠图质检</button>
+  <button data-view="brush">去布料</button>
+  <button data-view="new">新建生成</button>
+  <button data-view="limits">能力与边界</button>
+</nav>
+
+<main>
+  <section class="view active" id="view-jobs">
+    <div class="layout">
+      <aside class="panel">
+        <h2>任务历史（磁盘真实产物）</h2>
+        <div class="job-list" id="jobList"><div class="empty">加载中…</div></div>
+      </aside>
+      <section class="panel" id="detailPanel">
+        <div class="empty">从左侧选择一个任务查看分阶段结果。</div>
+      </section>
+    </div>
+  </section>
+
+  <section class="view" id="view-qc">
+    <div class="panel">
+      <h2>蒙版质检与逐张放大检查</h2>
+      <div class="qc-versions" id="qcVersions"></div>
+      <div id="qcBody"><div class="empty">加载中…</div></div>
+       <div id="comparisonPanel" class="panel" style="margin-top:14px"><h2>多模型结果对比</h2><div id="comparisonBody"><div class="empty">加载中…</div></div></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-brush">
+    <div class="layout brush-layout">
+      <aside class="panel">
+        <h2>四张多视图蒙版</h2>
+        <div class="brush-views" id="brushViews"></div>
+        <div class="body" style="border-top:1px solid var(--line);padding-top:12px">
+          <p style="color:var(--text-dim);font-size:12.5px;margin:0 0 8px">
+            先用画笔擦掉手里不属于角色的布料，再点「保存并重跑」。
+            四张都改完效果最好；只改一张也能跑，其余沿用 v2。
+          </p>
+          <button class="primary" id="rerunBtn" style="width:100%">保存后重跑四视图（约 3 分钟）</button>
+          <div id="brushRunLog" class="log" style="display:none;margin-top:10px"></div>
+        </div>
+      </aside>
+      <section class="panel">
+        <h2 id="brushTitle">蒙版编辑</h2>
+        <div class="body">
+          <div class="brush-toolbar">
+            <button data-tool="erase" class="active">擦除布料</button>
+            <button data-tool="restore">恢复</button>
+            <label class="brush-size">笔刷 <input type="range" id="brushSize" min="8" max="160" value="40" /> <span id="brushSizeLabel">40 px</span></label>
+            <button id="undoBtn">撤销</button>
+            <button id="resetBtn">重置当前</button>
+            <span class="brush-size">缩放 <button id="zoomOutBtn" type="button">−</button><span id="zoomLabel">100%</span><button id="zoomInBtn" type="button">＋</button><button id="zoomFitBtn" type="button">适应</button></span>
+             <button class="primary" id="saveBtn">保存蒙版</button>
+          </div>
+          <div class="canvas-wrap" id="canvasWrap">
+            <canvas id="brushCanvas"></canvas>
+            <div class="empty" id="brushEmpty">选择左侧一张视图开始编辑。</div>
+          </div>
+          <div class="brush-hint" id="brushHint"></div>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <section class="view" id="view-new">
+    <div class="panel upload">
+      <h2>提交一张照片，跑本机 TripoSR（单视图基线）</h2>
+      <div class="body">
+        <p style="color:var(--text-dim);margin-top:0">
+          前端会先把照片提交给本地服务，服务在本机做人物抠图、合成中灰底、再调用 TripoSR。
+          原图只写入临时目录，任务结束后删除；中间产物保留在 <code>model-generation/output/jobs/&lt;任务号&gt;/</code>。
+        </p>
+        <div class="drop" id="drop">
+          <div>点击选择图片，或把图片拖到这里</div>
+          <div style="font-size:12px;color:var(--text-faint);margin-top:6px">支持 JPEG / PNG / WebP，不超过 20 MB</div>
+          <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" class="sr" />
+        </div>
+        <div class="preview" id="previewBox"></div>
+        <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button class="primary" id="runBtn" disabled>开始本机生成</button>
+          <span id="newStatus" style="color:var(--text-dim);font-size:13px"></span>
+        </div>
+        <div class="log" id="newLog" style="display:none"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="view-limits">
+    <div class="grid-3">
+      <div class="card">
+        <h3>已实现</h3>
+        <ul style="margin:0;padding-left:18px;color:var(--text-dim);font-size:13px">
+          <li>多模型人物抠图（u2net_human_seg、birefnet-portrait、isnet-general-use）＋人体解析先验</li>
+          <li>TripoSR 单视图重建（本机 RTX 4070，256 网格分辨率）</li>
+          <li>Hunyuan3D-2mv 四视图形体生成（低显存 offload）</li>
+          <li>多视图轮廓雕刻（visual hull）作为完整几何对照</li>
+          <li>逐阶段产物留档与页面检查</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>尚未实现</h3>
+        <ul style="margin:0;padding-left:18px;color:var(--text-dim);font-size:13px">
+          <li>纹理与 PBR 材质</li>
+          <li>骨架、手指骨骼、面部 BlendShape</li>
+          <li>自动绑定与动捕重定向</li>
+          <li>AI 推测补拍角度（当前只用真人拍摄的视角）</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>如何解读结果</h3>
+        <ul style="margin:0;padding-left:18px;color:var(--text-dim);font-size:13px">
+          <li>“watertight”只表示网格闭合，不代表人体比例或侧面准确。</li>
+          <li>单视图模型会臆造背面；四视图模型受拍摄角度和抠图质量影响。</li>
+          <li>页面所有数字都来自磁盘上的报告文件，缺失即显示“缺失”。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  本地服务只监听 127.0.0.1，页面不向第三方上传任何素材。产物目录：<span class="mono" id="storageLine">—</span>
+</footer>
+
+<div class="lightbox" id="lightbox">
+  <button class="close" id="lbClose" aria-label="关闭">×</button>
+  <img id="lbImg" alt="" />
+  <div class="cap" id="lbCap"></div>
+</div>
+
+<script>
+const state = {
+  config: null,
+  jobs: [],
+  selectedJobId: null,
+  detail: null,
+  qc: null,
+  qcVersion: null,
+  uploadDataUrl: null,
+  polling: null,
+};
+
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+async function fetchJson(url, opts) {
+  const res = await fetch(url, opts);
+  const text = await res.text();
+  let data = null;
+  try { data = JSON.parse(text); } catch (e) { data = null; }
+  if (!res.ok) throw new Error((data && data.error) || ('HTTP ' + res.status));
+  return data;
+}
+
+function esc(value) {
+  return String(value == null ? '' : value).replace(/[&<>"']/g, (ch) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[ch]));
+}
+function fmtBytes(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '—';
+  if (bytes > 1024 * 1024 * 1024) return (bytes / 1024 / 1024 / 1024).toFixed(2) + ' GB';
+  if (bytes > 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+  if (bytes > 1024) return (bytes / 1024).toFixed(0) + ' KB';
+  return bytes + ' B';
+}
+function fmtTime(ms) {
+  if (!Number.isFinite(ms)) return '—';
+  const d = new Date(ms);
+  return (d.getMonth() + 1) + '月' + d.getDate() + '日 ' +
+    String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+function fmtSec(sec) {
+  if (!Number.isFinite(sec) || sec <= 0) return '—';
+  if (sec < 60) return sec.toFixed(1) + ' 秒';
+  return Math.floor(sec / 60) + ' 分 ' + Math.round(sec % 60) + ' 秒';
+}
+const STATUS_TEXT = {
+  SUCCEEDED: '已完成', done: '已完成', RUNNING: '进行中', running: '进行中',
+  FAILED: '失败', failed: '失败', missing: '缺失', partial: '部分完成', pending: '等待', unknown: '未知',
+};
+function statusPill(status) {
+  const s = String(status || 'unknown');
+  const text = STATUS_TEXT[s] || s;
+  return '<span class="status ' + esc(s) + '">' + esc(text) + '</span>';
+}
+
+function openLightbox(src, caption) {
+  $('#lbImg').src = src;
+  $('#lbCap').textContent = caption || '';
+  $('#lightbox').classList.add('open');
+}
+$('#lightbox').addEventListener('click', (e) => {
+  if (e.target.id === 'lightbox' || e.target.id === 'lbClose') $('#lightbox').classList.remove('open');
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') $('#lightbox').classList.remove('open'); });
+
+$('#tabs').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-view]');
+  if (!btn) return;
+  $$('#tabs button').forEach((b) => b.classList.toggle('active', b === btn));
+  $$('.view').forEach((v) => v.classList.toggle('active', v.id === 'view-' + btn.dataset.view));
+  if (btn.dataset.view === 'qc') loadQc();
+  if (btn.dataset.view === 'brush') loadBrush();
+});
+
+async function loadConfig() {
+  try {
+    const cfg = await fetchJson('/api/config');
+    state.config = cfg;
+    const pill = $('#serverPill');
+    pill.className = 'pill ' + (cfg.hasJobsDir ? 'ok' : 'warn');
+    pill.innerHTML = '<span class="dot"></span><span>本地服务已连接 · 端口 ' + esc(cfg.port) + '</span>';
+    $('#providerPill').textContent = '生成后端：' + (cfg.provider || '—');
+    const st = cfg.storage || {};
+    $('#storageLine').textContent = (st.jobsDir || '—') + ' ／ ' + (st.testImagesDir || '—');
+  } catch (err) {
+    $('#serverPill').className = 'pill bad';
+    $('#serverPill').innerHTML = '<span class="dot"></span><span>连接失败：' + esc(err.message) + '</span>';
+  }
+}
+
+function renderJobList(jobs) {
+  const list = $('#jobList');
+  if (!jobs.length) {
+    list.innerHTML = '<div class="empty">还没有任务目录。到“新建生成”提交一张照片试试。</div>';
+    return;
+  }
+  list.innerHTML = jobs.map((job) => {
+    const active = job.id === state.selectedJobId ? ' active' : '';
+    const thumb = job.thumbnail ? '<img src="' + esc(job.thumbnail) + '" alt="" loading="lazy" />' : '';
+    const metrics = job.metrics || {};
+    const metaLine = [
+      job.model && job.model.label ? esc(job.model.label) : '未知模型',
+      metrics.vertexCount ? Math.round(metrics.vertexCount).toLocaleString() + ' 顶点' : null,
+    ].filter(Boolean).join(' · ');
+    return '<div class="job-item' + active + '" data-id="' + esc(job.id) + '">' +
+      '<div class="thumb">' + thumb + '</div>' +
+      '<div class="meta">' +
+        '<div class="id" title="' + esc(job.id) + '">' + esc(job.id) + '</div>' +
+        '<div class="line2">' + statusPill(job.status) + '<span class="time">' + esc(fmtTime(job.createdAt)) + '</span></div>' +
+        '<div class="line2"><span class="time">' + metaLine + '</span></div>' +
+      '</div></div>';
+  }).join('');
+  $$('#jobList .job-item').forEach((el) => {
+    el.addEventListener('click', () => selectJob(el.dataset.id));
+  });
+}
+
+async function loadJobs(opts) {
+  const keepSelection = !opts || opts.keepSelection !== false;
+  try {
+    const data = await fetchJson('/api/jobs');
+    state.jobs = data.jobs || [];
+    if (!keepSelection || !state.jobs.some((j) => j.id === state.selectedJobId)) {
+      state.selectedJobId = state.jobs.length ? state.jobs[0].id : null;
+    }
+    renderJobList(state.jobs);
+    if (state.selectedJobId) await selectJob(state.selectedJobId, { silent: true });
+    else $('#detailPanel').innerHTML = '<div class="empty">还没有任务。</div>';
+  } catch (err) {
+    $('#jobList').innerHTML = '<div class="empty">任务列表加载失败：' + esc(err.message) + '</div>';
+  }
+}
+
+async function selectJob(id, opts) {
+  const silent = !!(opts && opts.silent);
+  state.selectedJobId = id;
+  $$('#jobList .job-item').forEach((el) => el.classList.toggle('active', el.dataset.id === id));
+  if (!silent) $('#detailPanel').innerHTML = '<div class="empty">读取任务产物…</div>';
+  try {
+    const detail = await fetchJson('/api/jobs/' + encodeURIComponent(id));
+    state.detail = detail;
+    renderDetail(detail);
+  } catch (err) {
+    $('#detailPanel').innerHTML = '<div class="empty">任务详情加载失败：' + esc(err.message) + '</div>';
+  }
+}
+
+function artifactCard(art) {
+  const name = art.name || art.rel || '产物';
+  const isImage = /\.(png|jpe?g|webp)$/i.test(name);
+  const isGlb = /\.glb$/i.test(name);
+  let media;
+  if (isImage) {
+    media = '<div class="imgwrap" data-src="' + esc(art.url) + '" data-cap="' + esc(name) + '">' +
+      '<img src="' + esc(art.url) + '" alt="' + esc(name) + '" loading="lazy" /></div>';
+  } else if (isGlb) {
+    media = '<div class="imgwrap"><div class="placeholder">GLB 网格<br>' + esc(fmtBytes(art.size)) +
+      '<br><a class="dl" href="' + esc(art.downloadUrl || art.url) + '">下载</a></div></div>';
+  } else {
+    media = '<div class="imgwrap"><div class="placeholder">' +
+      esc(((name.split('.').pop() || '').toUpperCase())) + ' 文件<br>' + esc(fmtBytes(art.size)) + '</div></div>';
+  }
+  const analysis = art.analysis || {};
+  const extra = analysis.ok
+    ? '<div class="sz">' + Number(analysis.vertexCount || analysis.vertices || 0).toLocaleString() + ' 顶点 · ' +
+      Number(analysis.faceCount || analysis.faces || 0).toLocaleString() + ' 面</div>'
+    : '';
+  return '<div class="art">' + media +
+    '<div class="cap"><div class="name" title="' + esc(name) + '">' + esc(name) + '</div>' + extra +
+    (isImage || isGlb ? '<a class="dl" href="' + esc(art.downloadUrl || art.url) + '">下载</a>' : '') +
+    '</div></div>';
+}
+
+function renderStages(stages) {
+  return stages.map((stage, i) => {
+    const artifacts = (stage.artifacts || []).map(artifactCard).join('');
+    const slots = (stage.slots || []).map((slot) => {
+      const card = slot.artifact ? artifactCard(slot.artifact) : '<div class="imgwrap"><div class="placeholder">缺失</div></div>';
+      const metric = slot.metrics ? (' · ' + (slot.metrics.width || '—') + '×' + (slot.metrics.height || '—')) : '';
+      return '<div class="art"><div class="cap"><div class="name">' + esc(slot.label || slot.key) + '</div><div class="sz">' + (slot.present ? '已生成' : '缺失') + esc(metric) + '</div></div>' + card + (slot.hint ? '<div class="cap"><div class="sub">' + esc(slot.hint) + '</div></div>' : '') + '</div>';
+    }).join('');
+    const checks = (stage.checks || []).map((check) => '<span class="chip ' + esc(check.state || '') + '">' + esc(check.label || check.key) + '：' + esc(check.value || check.state || '—') + '</span>').join('');
+    const checkSummary = stage.checkSummary ? '<div class="chips"><span class="chip done">通过 ' + stage.checkSummary.pass + '</span><span class="chip missing">缺失 ' + stage.checkSummary.missing + '</span><span class="chip">未实现 ' + stage.checkSummary.unimplemented + '</span></div>' : '';
+    const missing = (stage.missingViews || []).length
+      ? '<div class="chips">' + (stage.missingViews || []).map((v) => '<span class="chip missing">缺 ' + esc(v) + ' 视角</span>').join('') + '</div>'
+      : '';
+    const views = (stage.views || []).length
+      ? '<div class="chips">' + (stage.views || []).map((v) =>
+          '<span class="chip ' + (v.present ? 'done' : 'missing') + '">' + esc(v.angle || v.name || '视角') + (v.present ? ' ✓' : ' ✗') + '</span>').join('') + '</div>'
+      : '';
+    const notes = (stage.notes || []).length
+      ? '<ul class="notes">' + (stage.notes || []).map((n) => '<li>' + esc(n) + '</li>').join('') + '</ul>'
+      : '';
+    const metrics = (stage.metrics || []).length
+      ? '<div class="chips">' + (stage.metrics || []).map((m) => '<span class="chip">' + esc(m.label) + '：' + esc(m.value) + '</span>').join('') + '</div>'
+      : '';
+    return '<div class="stage">' +
+      '<div class="head"><span class="idx">' + (i + 1) + '</span>' +
+      '<span class="title">' + esc(stage.title || stage.key) + '</span><span class="spacer"></span>' +
+      statusPill(stage.status) + '</div>' +
+      '<div class="body"><div class="summary">' + esc(stage.summary || '') + '</div>' +
+      views + missing + metrics + checkSummary + (checks ? '<div class="chips">' + checks + '</div>' : '') + (slots ? '<div class="artifacts">' + slots + '</div>' : '') +
+      (artifacts ? '<div class="artifacts">' + artifacts + '</div>' : '') + notes +
+      '</div></div>';
+  }).join('');
+}
+
+function renderDetail(detail) {
+  const job = detail.job || {};
+  const metrics = job.metrics || {};
+  const head = '<div class="detail-head"><div style="min-width:0">' +
+    '<h2>' + esc(job.id || '—') + '</h2>' +
+    '<div class="sub">' + esc((job.model && job.model.label) || '未知模型') + ' · ' +
+    esc((job.model && job.model.views) || '') + ' · 更新 ' + esc(fmtTime(job.updatedAt)) + '</div>' +
+    '<div class="metric-row">' +
+      '<div class="metric"><div class="k">状态</div><div class="v" style="font-size:14px">' + statusPill(job.status) + '</div></div>' +
+      '<div class="metric"><div class="k">顶点</div><div class="v">' + (metrics.vertexCount ? Math.round(metrics.vertexCount).toLocaleString() : '—') + '</div></div>' +
+      '<div class="metric"><div class="k">面</div><div class="v">' + (metrics.faceCount ? Math.round(metrics.faceCount).toLocaleString() : '—') + '</div></div>' +
+      '<div class="metric"><div class="k">闭合</div><div class="v" style="font-size:14px">' + (metrics.watertight == null ? '—' : (metrics.watertight ? '是' : '否')) + '</div></div>' +
+      '<div class="metric"><div class="k">耗时</div><div class="v" style="font-size:14px">' + esc(fmtSec(metrics.durationSeconds)) + '</div></div>' +
+      '<div class="metric"><div class="k">显存峰值</div><div class="v" style="font-size:14px">' + (metrics.vramPeakMb ? Math.round(metrics.vramPeakMb) + ' MB' : '—') + '</div></div>' +
+      '<div class="metric"><div class="k">产物大小</div><div class="v" style="font-size:14px">' + esc(fmtBytes(job.sizeBytes)) + '</div></div>' +
+    '</div></div></div>';
+
+  const files = (detail.full && detail.full.fileList) || [];
+  const previews = files.filter((f) => /-(preview|view\d)\.(png|jpe?g)$/i.test(f.name || ''));
+  let previewHtml = '';
+  if (previews.length) {
+    previewHtml = '<div class="stage"><div class="head"><span class="idx">◉</span>' +
+      '<span class="title">几何预览</span><span class="spacer"></span>' +
+      '<span class="time">由本机正交渲染生成</span></div><div class="body"><div class="artifacts">' +
+      previews.map((f) => '<div class="art"><div class="imgwrap" data-src="' + esc(f.url) + '" data-cap="' + esc(f.name) + '">' +
+        '<img src="' + esc(f.url) + '" alt="" loading="lazy"></div><div class="cap"><div class="name">' + esc(f.name) + '</div></div></div>').join('') +
+      '</div></div></div>';
+  }
+
+  const stagesHtml = renderStages(detail.stages || []);
+  $('#detailPanel').innerHTML = head + '<div class="stages">' + previewHtml + stagesHtml + '</div>';
+
+  $$('#detailPanel .imgwrap[data-src]').forEach((el) => {
+    el.addEventListener('click', () => openLightbox(el.dataset.src, el.dataset.cap));
+  });
+}
+
+async function loadQc() {
+  try {
+    const data = await fetchJson('/api/qc');
+    state.qc = data;
+    const versions = data.versions || [];
+    if (!state.qcVersion || !versions.some((v) => v.key === state.qcVersion)) {
+      state.qcVersion = data.preferred || (versions[0] && versions[0].key) || null;
+    }
+    renderQcVersions(versions);
+    await loadQcVersion(state.qcVersion);
+    await loadComparison('hunyuan3d-2mv-v3');
+  } catch (err) {
+    $('#qcBody').innerHTML = '<div class="empty">质检数据加载失败：' + esc(err.message) + '</div>';
+  }
+}
+
+function renderQcVersions(versions) {
+  $('#qcVersions').innerHTML = versions.map((v) => {
+    const cls = v.key === state.qcVersion ? ' active' : '';
+    const ready = v.ready ? '' : ' <span class="chip missing">未完成</span>';
+    return '<button class="' + cls + '" data-version="' + esc(v.key) + '">' +
+      esc(v.label || v.key) + '（' + esc(v.entryCount || 0) + ' 张）' + ready + '</button>';
+  }).join('');
+  $$('#qcVersions button').forEach((btn) => {
+    btn.addEventListener('click', () => { state.qcVersion = btn.dataset.version; loadQc(); });
+  });
+}
+
+async function loadComparison(jobId) {
+  const body = $('#comparisonBody');
+  if (!body) return;
+  try {
+    const data = await fetchJson('/api/comparison/' + encodeURIComponent(jobId));
+    const cards = (data.models || []).map((m) => '<figure><img src="' + esc(m.previewUrl) + '" alt="" data-src="' + esc(m.previewUrl) + '" data-cap="' + esc(m.label || m.id) + '" /><figcaption>' + esc(m.label || m.id) + '</figcaption></figure>').join('');
+    body.innerHTML = '<img class="comparison-sheet" src="' + esc(data.contactSheetUrl) + '" alt="多模型输出对比图" data-src="' + esc(data.contactSheetUrl) + '" data-cap="多模型输出对比图" />' + '<div class="comparison-models">' + (cards || '<div class="empty">暂无可渲染模型。</div>') + '</div>';
+    $$('#comparisonBody img[data-src]').forEach((el) => el.addEventListener('click', () => openLightbox(el.dataset.src, el.dataset.cap)));
+  } catch (err) { body.innerHTML = '<div class="empty">对比图生成失败：' + esc(err.message) + '</div>'; }
+}
+
+async function loadQcVersion(version) {
+  if (!version) { $('#qcBody').innerHTML = '<div class="empty">没有可用的质检版本。</div>'; return; }
+  $('#qcBody').innerHTML = '<div class="empty">读取质检产物…</div>';
+  try {
+    const data = await fetchJson('/api/qc?version=' + encodeURIComponent(version));
+    const v = data.version || {};
+    const entries = v.entries || [];
+    const sheet = v.contactSheetUrl
+      ? '<div class="qc-sheet"><img src="' + esc(v.contactSheetUrl) + '" alt="质检总览" /></div>'
+      : '';
+    const cards = entries.map((e) => {
+      const m = e.metrics || {};
+      const angle = e.angle && e.angle !== 'unknown' ? (e.angleLabel || e.angle) : '角度未标注';
+      return '<div class="qc-card"><div class="imgs">' +
+        '<figure><img src="' + esc(e.sourceUrl) + '" alt="" loading="lazy" data-src="' + esc(e.sourceUrl) + '" data-cap="' + esc(e.source || '原图') + '" /><figcaption>原图</figcaption></figure>' +
+        '<figure><img src="' + esc(e.cutoutUrl) + '" alt="" loading="lazy" data-src="' + esc(e.cutoutUrl) + '" data-cap="' + esc((e.id || '') + '-cutout') + '" /><figcaption>透明抠图</figcaption></figure>' +
+        '</div><div class="info"><div class="t">' + esc((e.index ? e.index + '. ' : '') + (e.id || '')) + '</div>' +
+        '<div class="chips"><span class="chip">' + esc(angle) + '</span>' +
+        '<span class="chip">前景 ' + (m.foregroundRatio == null ? '—' : (m.foregroundRatio * 100).toFixed(1) + '%') + '</span>' +
+        '<span class="chip' + (m.edgeLeakRatio > 0.05 ? ' missing' : '') + '">边缘 ' +
+        (m.edgeLeakRatio == null ? '—' : (m.edgeLeakRatio * 100).toFixed(1) + '%') + '</span></div>' +
+        '<div class="m">' + esc(e.notes || '') + '</div></div></div>';
+    }).join('');
+    $('#qcBody').innerHTML = sheet + '<div class="qc-grid">' + (cards || '<div class="empty">该版本还没有逐张产物。</div>') + '</div>';
+    $$('#qcBody img[data-src]').forEach((el) => {
+      el.addEventListener('click', () => openLightbox(el.dataset.src, el.dataset.cap));
+    });
+  } catch (err) {
+    $('#qcBody').innerHTML = '<div class="empty">读取失败：' + esc(err.message) + '</div>';
+  }
+}
+
+/* ---------------- 去布料：蒙版画笔 ---------------- */
+const brush = {
+  state: null, active: null, tool: 'erase', size: 40, zoom: 1,
+  baseImage: null, canvas: null, ctx: null, drawing: false, panning: false,
+  snapshots: [], edited: new Set(), drafts: new Map(), pollTimer: null,
+};
+
+async function loadBrush() {
+  try {
+    const data = await fetchJson('/api/masks');
+    brush.state = data;
+    if (!brush.active && data.views) brush.active = Object.keys(data.views)[0];
+    renderBrushViews();
+    await openBrushView(brush.active);
+    if (data.run) updateBrushRun(data.run);
+  } catch (err) {
+    $('#brushHint').textContent = '读取蒙版状态失败：' + err.message;
+  }
+}
+
+function renderBrushViews() {
+  const box = $('#brushViews');
+  const views = (brush.state && brush.state.views) || {};
+  box.innerHTML = Object.keys(views).map((angle) => {
+    const v = views[angle];
+    const active = angle === brush.active ? ' active' : '';
+    const edited = brush.edited.has(angle);
+    return '<div class="brush-view' + active + '" data-angle="' + esc(angle) + '">' +
+      '<img src="' + esc(v.grayUrl) + '" alt="" />' +
+      '<div><div class="nm">' + esc(v.label || angle) + '</div>' +
+      '<div class="st' + (edited ? ' edited' : '') + '">' +
+      (edited ? '已修改' : (brush.state.activeVersion === 'processed-v3' ? 'v3' : 'v2')) + '</div></div>' +
+      '<div></div></div>';
+  }).join('');
+  $$('#brushViews .brush-view').forEach((el) => el.addEventListener('click', () => openBrushView(el.dataset.angle)));
+}
+
+async function openBrushView(angle) {
+  if (!angle) return;
+  if (brush.active && brush.active !== angle && brush.canvas && brush.edited.has(brush.active)) rememberBrushDraft();
+  brush.active = angle;
+  renderBrushViews();
+  const v = brush.state.views[angle];
+  $('#brushTitle').textContent = '蒙版编辑 · ' + (v.label || angle);
+  $('#brushHint').textContent = '加载中…';
+  const canvas = $('#brushCanvas');
+  const source = brush.drafts.get(angle) || `${v.cutoutUrl}${v.cutoutUrl.includes('?') ? '&' : '?'}ts=${Date.now()}`;
+  const img = await loadImage(source);
+  canvas.width = img.naturalWidth || img.width;
+  canvas.height = img.naturalHeight || img.height;
+  brush.zoom = 1;
+  canvas.style.display = 'block';
+  $('#brushEmpty').style.display = 'none';
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(img, 0, 0);
+  brush.baseImage = img;
+  brush.canvas = canvas;
+  brush.ctx = ctx;
+  brush.snapshots = [];
+  applyBrushZoom();
+  bindBrushEvents();
+  updateBrushHint();
+}
+
+function applyBrushZoom() {
+  if (!brush.canvas) return;
+  brush.canvas.style.width = `${Math.round(brush.canvas.width * brush.zoom)}px`;
+  brush.canvas.style.height = `${Math.round(brush.canvas.height * brush.zoom)}px`;
+  $('#zoomLabel').textContent = Math.round(brush.zoom * 100) + '%';
+}
+
+function rememberBrushDraft() {
+  if (!brush.canvas || !brush.active || !brush.edited.has(brush.active)) return;
+  brush.drafts.set(brush.active, brush.canvas.toDataURL('image/png'));
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('图片加载失败：' + src));
+    img.src = src;
+  });
+}
+
+function bindBrushEvents() {
+  const canvas = brush.canvas;
+  if (!canvas || canvas.dataset.bound === '1') return;
+  canvas.dataset.bound = '1';
+  const pos = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (e.clientX - rect.left) * (canvas.width / rect.width),
+      y: (e.clientY - rect.top) * (canvas.height / rect.height),
+    };
+  };
+  const paint = (e) => {
+    if (!brush.drawing || !brush.ctx) return;
+    const { x, y } = pos(e);
+    const ctx = brush.ctx;
+    const r = brush.size / 2;
+    ctx.save();
+    if (brush.tool === 'erase') {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    } else if (brush.baseImage) {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.clip();
+      ctx.drawImage(brush.baseImage, x - r, y - r, brush.size, brush.size, x - r, y - r, brush.size, brush.size);
+    }
+    ctx.restore();
+    brush.edited.add(brush.active);
+    updateBrushHint();
+  };
+  canvas.addEventListener('pointerdown', (e) => {
+    if (!brush.ctx) return;
+    if (e.shiftKey || e.button === 1) { brush.panning = true; brush.panX = e.clientX; brush.panY = e.clientY; brush.scrollLeft = $('#canvasWrap').scrollLeft; brush.scrollTop = $('#canvasWrap').scrollTop; try { canvas.setPointerCapture(e.pointerId); } catch {} return; }
+     try { canvas.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+    brush.drawing = true;
+    pushSnapshot();
+    paint(e);
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (brush.panning) { const wrap = $('#canvasWrap'); wrap.scrollLeft = brush.scrollLeft - (e.clientX - brush.panX); wrap.scrollTop = brush.scrollTop - (e.clientY - brush.panY); return; }
+    if (brush.drawing) paint(e);
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach((t) => canvas.addEventListener(t, () => { brush.drawing = false; brush.panning = false; }));
+}
+
+function pushSnapshot() {
+  if (!brush.ctx) return;
+  try {
+    brush.snapshots.push(brush.ctx.getImageData(0, 0, brush.canvas.width, brush.canvas.height));
+    if (brush.snapshots.length > 5) brush.snapshots.shift();
+  } catch { /* ignore */ }
+}
+
+function updateBrushHint() {
+  const n = brush.edited.size;
+  $('#brushHint').textContent = n
+    ? '已编辑 ' + n + ' 张视图；点「保存蒙版」写入 v3，或直接点左侧「保存后重跑四视图」。'
+    : '在画布上按住拖动即可擦除布料；「恢复」用于恢复误擦的区域。';
+}
+
+$('#brushSize').addEventListener('input', (e) => {
+  brush.size = Number(e.target.value) || 40;
+  $('#brushSizeLabel').textContent = brush.size + ' px';
+});
+$('#zoomInBtn').addEventListener('click', () => { brush.zoom = Math.min(4, brush.zoom * 1.25); applyBrushZoom(); });
+$('#zoomOutBtn').addEventListener('click', () => { brush.zoom = Math.max(0.25, brush.zoom / 1.25); applyBrushZoom(); });
+$('#zoomFitBtn').addEventListener('click', () => { brush.zoom = 1; applyBrushZoom(); });
+$('#canvasWrap').addEventListener('wheel', (e) => {
+  if (!brush.canvas) return;
+  e.preventDefault();
+  brush.zoom = Math.min(4, Math.max(0.25, brush.zoom * (e.deltaY < 0 ? 1.1 : 0.9)));
+  applyBrushZoom();
+}, { passive: false });
+$$('.brush-toolbar button[data-tool]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    brush.tool = btn.dataset.tool;
+    $$('.brush-toolbar button[data-tool]').forEach((b) => b.classList.toggle('active', b === btn));
+  });
+});
+$('#undoBtn').addEventListener('click', () => {
+  if (!brush.ctx || !brush.snapshots.length) return;
+  brush.ctx.putImageData(brush.snapshots.pop(), 0, 0);
+  if (!brush.snapshots.length) {
+    brush.edited.delete(brush.active);
+    brush.drafts.delete(brush.active);
+  }
+  renderBrushViews();
+  updateBrushHint();
+});
+$('#resetBtn').addEventListener('click', () => {
+  brush.drafts.delete(brush.active);
+  brush.edited.delete(brush.active);
+  openBrushView(brush.active);
+});
+$('#saveBtn').addEventListener('click', saveBrushMask);
+$('#rerunBtn').addEventListener('click', saveAndRerun);
+
+function maskDataUrlFromCanvas(src) {
+  if (!src) return null;
+  const off = document.createElement('canvas');
+  off.width = src.width; off.height = src.height;
+  const octx = off.getContext('2d');
+  const srcData = src.getContext('2d').getImageData(0, 0, src.width, src.height);
+  const out = octx.createImageData(src.width, src.height);
+  for (let i = 0; i < srcData.data.length; i += 4) {
+    const a = srcData.data[i + 3];
+    out.data[i] = a; out.data[i + 1] = a; out.data[i + 2] = a; out.data[i + 3] = 255;
+  }
+  octx.putImageData(out, 0, 0);
+  return off.toDataURL('image/png');
+}
+
+function canvasMaskDataUrl() { return maskDataUrlFromCanvas(brush.canvas); }
+
+async function saveBrushMask() {
+  if (!brush.state || !brush.canvas) return false;
+  rememberBrushDraft();
+  const angles = [...brush.edited];
+  if (!angles.length) {
+    $('#brushHint').textContent = '当前没有未保存修改。';
+    return true;
+  }
+  $('#brushHint').textContent = '保存 ' + angles.length + ' 张视图…';
+  try {
+    let state = brush.state;
+    for (const angle of angles) {
+      const v = state.views[angle];
+      const dataUrl = brush.drafts.get(angle);
+      const img = await loadImage(dataUrl);
+      const temp = document.createElement('canvas');
+      temp.width = img.naturalWidth || img.width;
+      temp.height = img.naturalHeight || img.height;
+      temp.getContext('2d').drawImage(img, 0, 0);
+      const res = await fetchJson('/api/masks/save', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ version: 'processed-v3', id: v.id, mask: maskDataUrlFromCanvas(temp) }),
+      });
+      state = res.state;
+       try {
+         await fetchJson('/api/feedback', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({
+           id: v.id, angle, version: 'processed-v3', confirmed: true,
+           sourceMaskUrl: v.maskUrl || null,
+           correctedMaskUrl: state.views[angle] && state.views[angle].maskUrl || null,
+         }) });
+       } catch { /* feedback logging must not block a successful mask save */ }
+    }
+    brush.state = state;
+    brush.edited.clear();
+    brush.drafts.clear();
+    renderBrushViews();
+    await openBrushView(brush.active);
+    await loadQc();
+     $('#brushHint').textContent = '已保存到 processed-v3，并已刷新抠图质检。继续改其它视角，或直接重跑四视图。';
+    return true;
+  } catch (err) {
+    $('#brushHint').textContent = '保存失败：' + err.message;
+    return false;
+  }
+}
+
+async function saveAndRerun() {
+  const log = $('#brushRunLog');
+  log.style.display = 'block';
+  log.textContent = '保存蒙版…\n';
+  const ok = await saveBrushMask();
+  if (!ok) return;
+  log.textContent += '提交多视图任务…\n';
+  try {
+    const res = await fetchJson('/api/multiview/run', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ maskVersion: 'processed-v3', octree: 320 }),
+    });
+    log.textContent += '任务已启动（' + res.run.maskVersion + '）。\n';
+    if (brush.pollTimer) clearInterval(brush.pollTimer);
+    brush.pollTimer = setInterval(pollMultiview, 3000);
+  } catch (err) {
+    log.textContent += '启动失败：' + err.message + '\n';
+  }
+}
+
+function updateBrushRun(run) {
+  const log = $('#brushRunLog');
+  if (!run) return;
+  log.style.display = 'block';
+  log.textContent = '当前任务阶段：' + run.stage + (run.done ? '（已完成）' : '');
+}
+
+async function pollMultiview() {
+  const log = $('#brushRunLog');
+  try {
+    const data = await fetchJson('/api/multiview');
+    const run = data.run;
+    const stamp = '[' + new Date().toLocaleTimeString() + '] 阶段：';
+    if (!run) {
+      log.textContent += '\n' + stamp + '已结束（服务端已释放）。';
+      clearInterval(brush.pollTimer);
+      await loadJobs();
+      return;
+    }
+    log.textContent = log.textContent.split('\n').slice(-28).join('\n') + '\n' + stamp + run.stage +
+      (run.done ? (run.error ? '（失败）' : '（完成）') : '');
+    log.scrollTop = log.scrollHeight;
+    if (run.done) {
+      clearInterval(brush.pollTimer);
+      if (run.error) log.textContent += '\n' + run.error;
+      await loadJobs();
+      if (!run.error) {
+        const btn = $$('#tabs button').find((b) => b.dataset.view === 'jobs');
+        if (btn) btn.click();
+        await selectJob('hunyuan3d-2mv-v3');
+      }
+    }
+  } catch (err) {
+    log.textContent += '\n轮询失败：' + err.message;
+  }
+}
+
+function readAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error || new Error('读取图片失败'));
+    reader.readAsDataURL(file);
+  });
+}
+
+$('#drop').addEventListener('click', () => $('#fileInput').click());
+$('#fileInput').addEventListener('change', async (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (file) await acceptFile(file);
+});
+['dragover', 'drop'].forEach((type) => {
+  $('#drop').addEventListener(type, (e) => { e.preventDefault(); });
+});
+$('#drop').addEventListener('drop', async (e) => {
+  const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (file) await acceptFile(file);
+});
+
+async function acceptFile(file) {
+  if (!/^image\/(jpeg|png|webp)$/i.test(file.type)) {
+    $('#newStatus').textContent = '只支持 JPEG / PNG / WebP。';
+    return;
+  }
+  if (file.size > 20 * 1024 * 1024) {
+    $('#newStatus').textContent = '图片超过 20 MB。';
+    return;
+  }
+  state.uploadDataUrl = await readAsDataUrl(file);
+  $('#previewBox').innerHTML = '<img src="' + state.uploadDataUrl + '" alt="预览" />';
+  $('#runBtn').disabled = false;
+  $('#newStatus').textContent = '已选择：' + file.name + '（' + fmtBytes(file.size) + '）';
+}
+
+$('#runBtn').addEventListener('click', async () => {
+  if (!state.uploadDataUrl) return;
+  $('#runBtn').disabled = true;
+  $('#newStatus').textContent = '正在提交到本地服务…';
+  const log = $('#newLog');
+  log.style.display = 'block';
+  log.textContent = '';
+  try {
+    const res = await fetchJson('/api/local-models', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ image: state.uploadDataUrl }),
+    });
+    log.textContent += '已创建任务：' + res.id + '\n';
+    $('#newStatus').textContent = '任务已创建，轮询进度…';
+    pollTask(res.id, log);
+  } catch (err) {
+    $('#newStatus').textContent = '提交失败：' + err.message;
+    log.textContent += '提交失败：' + err.message + '\n';
+    $('#runBtn').disabled = false;
+  }
+});
+
+function pollTask(id, log) {
+  if (state.polling) clearInterval(state.polling);
+  state.polling = setInterval(async () => {
+    try {
+      const detail = await fetchJson('/api/jobs/' + encodeURIComponent(id));
+      const job = detail.job || {};
+      log.textContent += new Date().toLocaleTimeString() + ' · 状态 ' + job.status + ' · 阶段 ' + (job.stage || '—') + '\n';
+      log.scrollTop = log.scrollHeight;
+      if (job.status === 'SUCCEEDED' || job.status === 'FAILED') {
+        clearInterval(state.polling);
+        state.polling = null;
+        $('#runBtn').disabled = false;
+        $('#newStatus').textContent = job.status === 'SUCCEEDED' ? '生成完成，可到任务列表查看。' : '生成失败，详情见任务。';
+        await loadJobs();
+      }
+    } catch (err) {
+      log.textContent += '轮询失败：' + err.message + '\n';
+    }
+  }, 3000);
+}
+
+setInterval(() => {
+  if (document.hidden) return;
+  const hasRunning = state.jobs.some((j) => /RUNNING|running|pending/i.test(String(j.status)));
+  if (hasRunning) loadJobs();
+}, 8000);
+
+$('#refreshBtn').addEventListener('click', async () => {
+  await loadConfig();
+  await loadJobs();
+  if ($('#view-qc').classList.contains('active')) await loadQc();
+});
+
+(async function init() {
+  await loadConfig();
+  await loadJobs();
+})();
+</script>
+</body>
+</html>

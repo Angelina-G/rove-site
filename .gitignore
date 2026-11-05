@@ -1,0 +1,13 @@
+node_modules/
+model-generation/envs/
+model-generation/cache/
+model-generation/weights/
+model-generation/source/TripoSR/
+model-generation/test-images/
+model-generation/input-temp/
+model-generation/output/
+model-generation/server.*.log
+model-api/.env
+model-api/.venv/
+**/__pycache__/
+model-generation/source/Hunyuan3D-2GP/

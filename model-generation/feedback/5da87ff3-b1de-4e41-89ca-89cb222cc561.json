@@ -1,0 +1,10 @@
+{
+  "feedbackId": "5da87ff3-b1de-4e41-89ca-89cb222cc561",
+  "id": "9ca2f019a28896cbef7fc86359863ddc",
+  "angle": "front",
+  "version": "processed-v3",
+  "sourceMaskUrl": "/api/qc/files/processed-v2/9ca2f019a28896cbef7fc86359863ddc-mask.png",
+  "correctedMaskUrl": "/api/qc/files/processed-v3/9ca2f019a28896cbef7fc86359863ddc-mask.png",
+  "confirmed": true,
+  "createdAt": "2026-11-05T16:05:21.517Z"
+}
