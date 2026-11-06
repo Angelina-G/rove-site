@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PiEEG 2026 补充报告：触觉与多感官跨空间传递可行性分析</title>
+<style>
+  :root {
+    --bg: #fafafa; --card: #ffffff; --text: #1a1a2e; --muted: #555;
+    --accent: #e17055; --accent2: #0984e3; --accent3: #00b894; --warn: #fdcb6e; --danger: #d63031;
+    --border: #e0e0e0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; font-size: 15px; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 26px; font-weight: 800; margin-bottom: 8px; line-height: 1.4; }
+  h2 { font-size: 21px; font-weight: 700; margin: 44px 0 14px; padding-bottom: 8px; border-bottom: 3px solid var(--accent); }
+  h3 { font-size: 17px; font-weight: 700; margin: 24px 0 10px; color: var(--accent); }
+  h4 { font-size: 15px; font-weight: 600; margin: 16px 0 6px; }
+  p { margin-bottom: 10px; }
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
+  .meta-bar { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 28px; padding: 14px 18px; background: var(--card); border-radius: 10px; border: 1px solid var(--border); font-size: 13px; color: var(--muted); }
+  .meta-bar span strong { color: var(--text); }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 18px; }
+  .highlight-box { background: linear-gradient(135deg, #e1705515, #0984e315); border-left: 4px solid var(--accent); padding: 18px 22px; border-radius: 0 10px 10px 0; margin: 18px 0; }
+  .warn-box { background: #fff3e0; border-left: 4px solid var(--warn); padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 14px 0; }
+  .danger-box { background: #ffebee; border-left: 4px solid var(--danger); padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 14px 0; }
+  .success-box { background: #e8f5e9; border-left: 4px solid var(--accent3); padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 14px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13px; }
+  th { background: var(--accent); color: #fff; padding: 9px 10px; text-align: left; font-weight: 600; }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: #fdf6f3; }
+  tr:hover td { background: #fceee8; }
+  .tag { display: inline-block; padding: 2px 9px; border-radius: 12px; font-size: 11.5px; font-weight: 600; margin: 2px 3px 2px 0; }
+  .tag-mature { background: #d4edda; color: #155724; }
+  .tag-growing { background: #fff3cd; color: #856404; }
+  .tag-frontier { background: #cce5ff; color: #004085; }
+  .tag-immature { background: #f8d7da; color: #721c24; }
+  .paper-item { padding: 9px 0; border-bottom: 1px dashed var(--border); }
+  .paper-item:last-child { border-bottom: none; }
+  .paper-title { font-weight: 600; font-size: 13.5px; }
+  .paper-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .paper-desc { font-size: 13px; margin-top: 3px; color: #333; }
+  .conclusion-big { font-size: 18px; font-weight: 700; text-align: center; padding: 28px; background: linear-gradient(135deg, #e17055, #0984e3); color: #fff; border-radius: 14px; margin: 20px 0; line-height: 1.6; }
+  .arch-flow { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
+  .arch-node { background: var(--accent2); color: #fff; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; text-align: center; }
+  .arch-arrow { font-size: 22px; color: var(--accent); font-weight: bold; }
+  .latency-bar { height: 10px; background: #eee; border-radius: 5px; margin: 4px 0; overflow: hidden; position: relative; }
+  .latency-fill { height: 100%; border-radius: 5px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+  .footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); text-align: center; }
+  .small { font-size: 12.5px; color: var(--muted); }
+  ul, ol { margin: 6px 0 10px 22px; }
+  li { margin-bottom: 5px; }
+  .phase-card { border-left: 4px solid; padding: 16px 20px; border-radius: 0 10px 10px 0; margin: 14px 0; background: var(--card); }
+  .phase-1 { border-color: var(--accent3); }
+  .phase-2 { border-color: var(--accent2); }
+  .phase-3 { border-color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>PiEEG 2026 补充报告：触觉与多感官跨空间传递可行性分析</h1>
+<p class="subtitle">双人跨空间远程化身（Telepresence）中的触觉、温度觉、嗅觉、前庭觉等多感官传递技术现状与工程可行性</p>
+
+<div class="meta-bar">
+  <span><strong>调研时间：</strong>2026 年 9 月</span>
+  <span><strong>覆盖论文：</strong>36 篇</span>
+  <span><strong>院校项目：</strong>18 个</span>
+  <span><strong>大厂/公司：</strong>20 家</span>
+  <span><strong>完整系统：</strong>10+ 个</span>
+  <span><strong>配套报告：</strong>PiEEG 2026 主报告（视觉/神经/动捕/数字人/AR）</span>
+</div>
+
+<!-- ==================== 执行摘要 ==================== -->
+<h2>一、执行摘要：核心结论</h2>
+
+<div class="conclusion-big">
+  视觉-听觉远程临场已跨过消费级可用门槛；<br>
+  <strong>触觉/温度/嗅觉远程传递仍处于"实验室原型 → 专业遥操作"阶段，无任何大厂做成消费级产品。</strong><br>
+  对 PiEEG 2026：第一期只叠加<strong>振动触觉 + 空间音频</strong>，第二期加<strong>温度觉</strong>，嗅觉/前庭觉仅做研究演示。
+</div>
+
+<div class="card">
+<h3>🔑 六条核心判断</h3>
+<ol>
+  <li><strong>远程触觉传递已经做出来了，但局限明显。</strong>北航 Distant Handshakes（2025）、USC 16 人 VR 社交触摸系统（2025）、NTT 触觉电话（2025 大阪世博）等完整系统已闭环验证。但全部局限在：① 手部/前臂小范围；② 局域网或同城 5G 专网；③ 振动/压力二选一，没有同时做到"高分辨率阵列 + 力反馈 + 无线"。</li>
+  <li><strong>真正的工程瓶颈不是致动器，而是端到端延迟 + 各感官时间绑定窗口。</strong>动觉力反馈要求 E2E ≤ 1–10 ms（99.999% 可靠），振动触觉可放宽到 20–50 ms，温度觉数百 ms，嗅觉 1–3 s。多感官同步必须按"最快感官定 deadline，最慢感官走异步队列"分层设计。</li>
+  <li><strong>跨城/跨国稳定远程触觉目前不可行。</strong>光速决定中美往返 RTT ~130–200 ms，远超动觉 1 ms 稳定窗口。只能用预测渲染 + 虚拟模型掩盖延迟。但<strong>社交触觉（握手、拍肩、拥抱）比操作触觉延迟容忍大 10–100 倍</strong>——这正是 PiEEG 应该切入的位置。</li>
+  <li><strong>振动触觉是唯一成熟的消费级路线。</strong>bHaptics TactSuit（$299–499）、TactGlove（$299，蓝牙 <20 ms）已商用；HaptX Gloves G1（135 触点/手，微流体）面向企业；Fluid Reality 电渗泵无线手套（CMU/Meta，UIST 2023）证明高分辨率无线化可行但仍是原型。</li>
+  <li><strong>超声空中触觉是 AR 端的差异化优势。</strong>NTT 2025 年突破（旋转焦点使力觉增强 20 倍）解决了"太弱"的历史瓶颈。AR 端用户不戴任何设备即可被"隔空触摸"，与 PiEEG 的 AR 端形态高度契合。</li>
+  <li><strong>PiEEG 叠加触觉后的独特定位：</strong>不是 Meta/Google 的"企业级光场+触觉手套"，也不是 bHaptics 的"游戏振动"，而是<strong>"双人跨空间的 EEG+EMG 神经同步 + 社交触觉事件（握手/拍肩/拥抱温度）"</strong>——把神经状态（认知负荷、注意力）和社交触感绑定，这在 2022–2026 文献中是空白带。</li>
+</ol>
+</div>
+
+<!-- ==================== 远程化身通信 ==================== -->
+<h2>二、远程化身 / Avatar-Mediated Communication 最新进展</h2>
+
+<div class="card">
+<p>PiEEG 2026 的"VR 端一人 → AR 端一人"本质上是 avatar-mediated telepresence。2024–2026 年该方向的关键进展：</p>
+
+<h4>代表性论文与系统</h4>
+<div class="paper-item">
+  <div class="paper-title">Project Starline: A High-Fidelity Telepresence System</div>
+  <div class="paper-meta">Google · ACM SIGGRAPH Emerging Technologies · 2024</div>
+  <div class="paper-desc">Google 官方系统化披露 Starline 的光场显示、6 路相机+深度采集、实时压缩与空间音频架构。2025 年 I/O 演进为 Google Beam，从" booth 大装置"转向"AI-first 平台"，用新视频模型把 2D 流转 3D。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">Expressive Telepresence via Modular Codec Avatars (MCA)</div>
+  <div class="paper-meta">Meta Reality Labs Research · 2024</div>
+  <div class="paper-desc">用模块化人脸组件替换整体模型，解决传统 Codec Avatar 跨个体表情迁移鲁棒性差的问题。Quest 3 已可实时跑 3 个全身 Codec Avatar（72 FPS）。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">MiniMates: Miniature Avatars for AR Remote Meetings within Limited Physical Spaces</div>
+  <div class="paper-meta">ACM CHI 2025</div>
+  <div class="paper-desc">在 AR 端用"微型 avatar"解决小物理空间里多人远程会议的站位问题；n=24 用户研究证明 co-presence 显著高于视频会议，且非言语交互方向感更强。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">Real-Time Translation of Upper-Body Gestures to Virtual Avatars in Dissimilar Telepresence Environments</div>
+  <div class="paper-meta">IEEE TVCG · 2025</div>
+  <div class="paper-desc">神经网络实时将上肢手势在不同物理空间的 MR 远程呈现中重定向，解决"两人在不同物理布局下 avatar 动作意图失真"问题——直接对应 PiEEG 中 VR 端和 AR 端物理空间不同的场景。</div>
+</div>
+<div class="paper-item">
+  <div class="paper-title">I am here with you: factors relating to social presence in social VR</div>
+  <div class="paper-meta">Frontiers in Virtual Reality · 2025（n=128 双人研究）</div>
+  <div class="paper-desc">social presence 与 spatial presence、感知温暖度强相关；body ownership、competence 的影响在控制前两者后消失。<strong>这是 PiEEG 评估问卷设计的直接参考。</strong></div>
+</div>
+
+<div class="highlight-box">
+  <strong>对 PiEEG 的启示：</strong>视觉-听觉远程临场的技术底座（Codec Avatars、空间音频、手势重定向）已被 Meta/Google 做透。PiEEG 的差异化不在视觉 avatar 质量，而在<strong>神经生理信号（EEG/EMG）+ 触觉/温度的多感官社交传递</strong>——这是 Google Beam 和 Meta Codec Avatars 都没有覆盖的维度。
+</div>
+</div>
+
+<!-- ==================== 远程触觉传递技术 ==================== -->
+<h2>三、远程触觉传递技术现状</h2>
+
+<h3>3.1 可穿戴触觉反馈设备：五条技术路线对比</h3>
+
+<div class="card">
+<table>
+  <tr><th style="width:14%">技术路线</th><th style="width:18%">代表产品/研究</th><th style="width:12%">成熟度</th><th style="width:20%">优势</th><th style="width:20%">劣势</th><th style="width:16%">远程触觉适用性</th></tr>
+  <tr>
+    <td><strong>振动触觉</strong><br>(vibrotactile)</td>
+    <td>bHaptics TactSuit X40（$499，40 电机）、TactGlove DK3（$299，8 点/手，BLE <20ms）</td>
+    <td><span class="tag tag-mature">成熟</span></td>
+    <td>成本低、无线、功耗低、生态成熟（300+ VR 游戏支持）</td>
+    <td>空间分辨率有限，只能表达"哪里被碰了"，无法传递纹理/形状/压力细节</td>
+    <td>★★★★★ 第一期首选</td>
+  </tr>
+  <tr>
+    <td><strong>力反馈/运动觉</strong><br>(kinesthetic)</td>
+    <td>HaptX Gloves G1（135 触点/手，微流体，2mm 皮肤位移）、Manus Metagloves Pro Haptic（2025）、SenseGlove R1</td>
+    <td><span class="tag tag-growing">快速发展中</span></td>
+    <td>可渲染物体形状/大小/重量，真实感最强</td>
+    <td>笨重昂贵（企业级），外骨骼式影响自然运动，延迟要求极高（≤1-10ms）</td>
+    <td>★★☆☆☆ 跨空间不可行</td>
+  </tr>
+  <tr>
+    <td><strong>电触觉</strong><br>(electrotactile)</td>
+    <td>Teslasuit 4（全身 EMS+TENS，80+ 触点）、SPETH 自供电电触觉手套（Science Advances 2025）、ReaWristic 腕带（arXiv 2024）</td>
+    <td><span class="tag tag-frontier">前沿探索</span></td>
+    <td>极薄、低功耗、可高密度阵列、自供电（SPETH）</td>
+    <td>个体差异大、感觉偏"刺痛"、舒适阈窄、安全边界需严格控制</td>
+    <td>★★★☆☆ 研究性使用</td>
+  </tr>
+  <tr>
+    <td><strong>超声空中触觉</strong><br>(mid-air haptics)</td>
+    <td>NTT StrongTouch（旋转焦点力觉增强 20 倍）、Ultraleap STRATOS Explore、东京大学 Shinoda Lab Hi-Fi 二代</td>
+    <td><span class="tag tag-growing">快速发展中</span></td>
+    <td><strong>无需佩戴任何设备</strong>，AR 端用户"凭空"被触摸</td>
+    <td>只能作用于近距离（~数十厘米）、单点/少数点、无法覆盖全身、力觉仍偏弱</td>
+    <td>★★★★☆ AR 端差异化优势</td>
+  </tr>
+  <tr>
+    <td><strong>气压/流体触觉</strong><br>(pneumatic/fluidic)</td>
+    <td>Fluid Reality 电渗泵手套（CMU/Meta，UIST 2023，160 致动器，207g 无线）、Haptiknit 针织套筒（Stanford，Science Robotics 2024，40N/致动器）</td>
+    <td><span class="tag tag-growing">快速发展中</span></td>
+    <td>压力感真实、可做大范围（拥抱/握压）、Haptiknit 证明压力比振动更能传递"被握住"感</td>
+    <td>传统气动需外置气泵；电渗泵方案刚突破但仍是原型；致动延迟 50–200ms</td>
+    <td>★★★★☆ 第二期升级方向</td>
+  </tr>
+</table>
+</div>
+
+<h3>3.2 柔性电子皮肤（采集端 + 显示端）</h3>
+
+<div class="card">
+<h4>采集端（触觉传感器阵列）</h4>
+<ul>
+  <li><strong>亚毫米级分辨率已实现：</strong>Advanced Materials 2026 发表压电+摩擦电双模态触觉阵列，空间分辨率 700μm，密度 226 pixels/cm²，可识别压觉分布+接触高度（杨氏模量）。</li>
+  <li><strong>多模态融合：</strong>压+热+剪切+超声的柔性传感器阵列在实验室均已实现（ACS AMI 2025 等）。</li>
+  <li><strong>自供电：</strong>摩擦纳米发电机（TENG）驱动的自供电触觉传感器可减少布线和功耗。</li>
+  <li><strong>开源方案：</strong>Meta ReSkin（与 CMU 合作）是开源磁性触觉皮肤，低成本、可更换、自校准，已被广泛用于机器人触觉采集。</li>
+</ul>
+
+<h4>显示端（贴肤致动）</h4>
+<ul>
+  <li><strong>CMU Carmel Majidi Soft Machines Lab</strong>（Nature Electronics 2025）：可拉伸液态金属电路+软气动+振动的皮肤贴附系统，直接贴在皮肤上即可渲染多种触觉，无需穿戴手套。</li>
+  <li><strong>Nature Electronics 2023</strong>（跨机构合作含 CMU Majidi）：皮肤贴附式多模态触觉接口，集成振动+压力+电刺激，超薄可贴合皮肤。</li>
+</ul>
+
+<div class="warn-box">
+  <strong>关键瓶颈：</strong>采集端高密度阵列的导线/读出电路柔性化和长期稳定性；从"传感器"到"可穿戴服装"的量产工艺；皮肤界面的长期生物相容性和汗液/运动鲁棒性。<strong>电子皮肤作为"采集端"进展快于"显示端"。</strong>
+</div>
+</div>
+
+<h3>3.3 已实现的完整远程触觉系统盘点</h3>
+
+<div class="card">
+<table>
+  <tr><th style="width:18%">系统</th><th style="width:14%">机构</th><th style="width:12%">覆盖部位</th><th style="width:14%">触觉模态</th><th style="width:14%">延迟</th><th style="width:28%">关键能力与评价</th></tr>
+  <tr>
+    <td><strong>Distant Handshakes</strong></td>
+    <td>北航（IEEE TAC 2025）</td>
+    <td>双手（握手）</td>
+    <td>压力分布+握力+时序+温度</td>
+    <td>本地闭环</td>
+    <td>16 种握手模式识别 >90%，可传递正/中/负社交意图。<strong>目前最接近 PiEEG 设想的完整系统。</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Multi-User VR Social Touch</strong></td>
+    <td>USC（WHC 2025）</td>
+    <td>双手+前臂（52 ERM/人）</td>
+    <td>振动触觉</td>
+    <td>WiFi 实时</td>
+    <td>支持最多 <strong>16 人</strong>分布式 VR 社交触摸，远程拍肩/握手/击掌/拥抱，12 人实验验证情感体验显著提升。</td>
+  </tr>
+  <tr>
+    <td><strong>Fure-au Denwa（触觉电话）</strong></td>
+    <td>NTT × 庆应 × 名工大（2025 大阪世博）</td>
+    <td>手/指定部位</td>
+    <td>超声空中触觉+振动</td>
+    <td>IOWN/6G 超低延迟</td>
+    <td>结合 IOWN 光通信基础设施实时传输触摸/振动/压力；NTT DOCOMO 已演示实时触觉传输。</td>
+  </tr>
+  <tr>
+    <td><strong>ETRI XR Telepresence</strong></td>
+    <td>韩国 ETRI（2025.09）</td>
+    <td>双手</td>
+    <td>触觉手套+握力反馈</td>
+    <td>局域网实时</td>
+    <td>触觉手套 + 生成式 AI + 沉浸式 XR，实时握手并感受握力；韩国国家研究理事会支持。</td>
+  </tr>
+  <tr>
+    <td><strong>Wearable Pneumatic Bidirectional</strong></td>
+    <td>arXiv 2026.09</td>
+    <td>拇指/食指指腹</td>
+    <td>织物气动连续压力</td>
+    <td><strong>64 ms E2E（无线）</strong></td>
+    <td>闭环气动控制器，64 ms 远低于触觉感知阈值；双向力觉传递。</td>
+  </tr>
+  <tr>
+    <td><strong>Teslasuit × Vodafone 5G</strong></td>
+    <td>Teslasuit（2019 经典案例）</td>
+    <td>全身（躯干撞击）</td>
+    <td>EMS/TENS 电刺激</td>
+    <td>5G 低延迟</td>
+    <td>远程实时橄榄球撞击感受——远程全身触觉的经典公开演示。</td>
+  </tr>
+  <tr>
+    <td><strong>5G 沉浸式遥操作</strong></td>
+    <td>PMC 2025</td>
+    <td>手部+全身</td>
+    <td>触觉反馈</td>
+    <td>触觉 ~65ms / 视频 150–290ms</td>
+    <td>5G 独立专网下端到端触觉反馈实测，全双工吞吐 25 Mbps，工业辅助场景。</td>
+  </tr>
+  <tr>
+    <td><strong>HOLD（Handshaking Over Long Distances）</strong></td>
+    <td>Penn State / NSF（ACM THRI 2025.12）</td>
+    <td>双手</td>
+    <td>径向挤压+皮肤拉伸+振动</td>
+    <td>未披露</td>
+    <td>系统对比研究：皮肤拉伸/径向挤压 vs 振动对 presence 的影响。</td>
+  </tr>
+</table>
+
+<div class="highlight-box">
+  <strong>关键结论：</strong>
+  <ul style="margin-bottom:0">
+    <li>"远程触觉传递"在 2022–2026 已经做出来了，但全部局限在手部/前臂小范围、局域网或同城 5G 专网、振动/压力二选一。</li>
+    <li><strong>远程面部触摸是明确空白</strong>——目前所有完整系统都只覆盖手/前臂/躯干，AR 端若做面部触觉传递将是创新点。</li>
+    <li>双向闭环（B 感受到后 A 也感受到反作用力）的系统仍少，多数是"单向触发"。</li>
+    <li>分辨率鸿沟：采集端（电子皮肤 226 pixels/cm²）远超显示端（振动马达只有几十个点）。</li>
+  </ul>
+</div>
+</div>
+
+<!-- ==================== 多感官远程传递 ==================== -->
+<h2>四、多感官远程传递（听觉/温度/嗅觉/前庭/本体）</h2>
+
+<div class="two-col">
+<div class="card">
+<h3>🎧 空间音频（已成熟）</h3>
+<ul>
+  <li><strong>Apple Spatial Audio</strong>：Vision Pro 双驱动音频 pod + Audio Ray Tracing + Dolby Atmos + Lossless；AirPods Pro 3 超低延迟。</li>
+  <li><strong>Meta Horizon Workrooms</strong>：空间音频分离语音+背景噪声。</li>
+  <li><strong>Google Beam</strong>：Starline 环绕声 + AI 音频。</li>
+  <li><strong>索尼 Tempest 3D AudioTech</strong>：PS VR2。</li>
+  <li><strong>HRTF 个性化</strong>：DL-based 双耳音频重建（arXiv 2025 综述）解决非个性化 HRTF 的 elevation 误判/前后混淆。</li>
+</ul>
+<div class="success-box"><strong>实测基准：</strong>Varjo XR-3 + 外接耳机 AV 时间偏移 22.46 ms、抖动 3.33 ms（PLOS ONE 2024）。</div>
+</div>
+
+<div class="card">
+<h3>🌡️ 温度觉（快速发展中）</h3>
+<ul>
+  <li><strong>Fiery Hands 热触觉手套</strong>（ACM SIGGRAPH Asia 2024）：Peltier 柔性致动器 + 散热器，热致动器 26mm，非激活侧保持环境温度形成清晰对比。</li>
+  <li><strong>织物基热触觉设备</strong>（arXiv 2025）：2g/指套，气动驱动 8.93N @50kPa，热响应 3°C/s，温度识别 98% 准确率。</li>
+  <li><strong>Teslasuit 4</strong>：半导体制冷片热反馈（20–40°C）。</li>
+  <li><strong>Feelreal</strong>：多感官 VR 面具含热/冷反馈。</li>
+</ul>
+<div class="warn-box"><strong>延迟容忍极大：</strong>温度觉感知阈值数百 ms–数秒，Peltier 从 25°C 到 40°C 通常需 2–5s。<strong>完全不占主链路延迟预算。</strong></div>
+</div>
+</div>
+
+<div class="two-col">
+<div class="card">
+<h3>👃 嗅觉显示（前沿探索）</h3>
+<ul>
+  <li><strong>北航李宇航 × 港城大于欣格 × 东京大学 Someya</strong>（Nature Communications 2024）：32 通道柔性气味发生器（OG）阵列，forearm 佩戴，"latency-free"嗅觉 MR 接口。2023 年 12 OG 口罩版是早期工作。</li>
+  <li><strong>OVR Technology</strong>：嗅觉 VR 卡盒，多气味 cartridge，面向影视/主题乐园。</li>
+  <li><strong>Feelreal</strong>：25+ 气味盒 + 热/冷 + 振翅风扇 + 振动，2024 年重新启动预购。</li>
+  <li><strong>Osmo</strong>（Alex Wiltschko，Google 前科学家）：AI "scent teleportation"，一端"录制"气味、另一端合成播放——远程嗅觉传递的 AI 化路线。</li>
+</ul>
+<div class="warn-box"><strong>物理延迟 1–3s：</strong>鼻腔传导 + 嗅球神经延迟决定了嗅觉是最慢的感官通道，适合事件触发式（"对方走进了花海"），不适合实时连续传递。</div>
+</div>
+
+<div class="card">
+<h3>⚖️ 前庭觉 / 本体感觉（研究性）</h3>
+<ul>
+  <li><strong>GVS（Galvanic Vestibular Stimulation）</strong>：MIT Media Lab（CHI 2019 奠基）耳后电极 GVS wearable，N=20 显著降低晕动症并提升沉浸感。2024–2026 仍在被大量引用和扩展。</li>
+  <li><strong>Bath/Glasgow</strong>（IEEE T-ITS 2025）：EEG 引导的 tACS 在物理旋转与视觉运动不匹配时减轻晕动症——<strong>前庭反馈和脑电监测闭环，是 PiEEG 最直接可借鉴的神经-前庭闭环。</strong></li>
+  <li><strong>NeuroFlux</strong>（MIT Media Lab 2025）：外周磁刺激腕带，单设备同时诱发肌肉运动（动觉）+ 局部皮肤 sensation（触觉），桥接 kinesthetic 与 tactile 双通道。</li>
+  <li><strong>本体感觉：</strong>PiEEG 现有 IMU（mocopi/光学动捕）已覆盖，无需额外硬件。</li>
+</ul>
+<div class="danger-box"><strong>高风险：</strong>GVS 耳后电极电流刺激有安全边界，晕动症个体差异大。<strong>只做研究演示，不进入双人主链路。</strong></div>
+</div>
+</div>
+
+<!-- ==================== 多感官同步延迟与带宽 ==================== -->
+<h2>五、多感官同步延迟与带宽对照（关键工程数据）</h2>
+
+<div class="card">
+<p>这是 PiEEG 叠加多感官时最核心的工程决策依据。不同感官的延迟敏感度、带宽需求、同步窗口差异巨大：</p>
+
+<table>
+  <tr>
+    <th style="width:14%">感官通道</th>
+    <th style="width:14%">可察觉异步阈值</th>
+    <th style="width:12%">舒适同步窗口</th>
+    <th style="width:10%">采样率</th>
+    <th style="width:16%">单路带宽（未压缩）</th>
+    <th style="width:10%">延迟敏感度</th>
+    <th style="width:24%">备注</th>
+  </tr>
+  <tr style="background:#e8f5e9">
+    <td><strong>动觉/力反馈</strong></td>
+    <td><strong>E2E ≤ 1–10 ms</strong></td>
+    <td>≤ 1 ms 最稳</td>
+    <td><strong>1 kHz</strong></td>
+    <td>6–12 DoF ≈ 100–200 kbps</td>
+    <td><strong>极高</strong></td>
+    <td>Tactile Internet 标准：99.999% 可靠性；5G URLLC 目标 1ms 空口时延</td>
+  </tr>
+  <tr style="background:#e3f2fd">
+    <td><strong>振动触觉</strong></td>
+    <td>20–50 ms 可接受</td>
+    <td>20–50 ms</td>
+    <td>200–1000 Hz</td>
+    <td>40 电机 ≈ 3–25 kbps</td>
+    <td>中</td>
+    <td>bHaptics X40 的 40 个电机 BLE 4.0 即可承载</td>
+  </tr>
+  <tr style="background:#e3f2fd">
+    <td><strong>压力/皮肤变形</strong></td>
+    <td>30–80 ms</td>
+    <td>30–50 ms</td>
+    <td>100–500 Hz</td>
+    <td>135 点 ≈ 200 kbps（HaptX 级）</td>
+    <td>中高</td>
+    <td>气动/微流控带宽低但致动延迟受气路限制（50–200ms）</td>
+  </tr>
+  <tr style="background:#fff3e0">
+    <td><strong>视觉（视频流）</strong></td>
+    <td>与音频比 ≥45–125ms</td>
+    <td>AV 同步 ±80–100ms</td>
+    <td>30–90 fps</td>
+    <td>10–50 Mbps（编码后）</td>
+    <td>中</td>
+    <td>Varjo XR-3 AV SOA = 22.46ms（PLOS ONE 2024）</td>
+  </tr>
+  <tr style="background:#fff3e0">
+    <td><strong>听觉（语音）</strong></td>
+    <td>与触觉比 ~20ms</td>
+    <td>±200ms（容忍度高）</td>
+    <td>16–48 kHz</td>
+    <td>64–256 kbps</td>
+    <td>中</td>
+    <td>语音 PSS：视频先 120ms 被感知为"同步"</td>
+  </tr>
+  <tr style="background:#f3e5f5">
+    <td><strong>温度觉</strong></td>
+    <td>数百 ms – 数秒</td>
+    <td>500–2000 ms</td>
+    <td>1–10 Hz</td>
+    <td>单 Peltier ≈ 80 bps</td>
+    <td><strong>极低</strong></td>
+    <td>Peltier 从 25°C 到 40°C 通常需 2–5s；热惯性决定上限</td>
+  </tr>
+  <tr style="background:#f3e5f5">
+    <td><strong>嗅觉</strong></td>
+    <td>1–3 s</td>
+    <td>1–5 s</td>
+    <td>事件驱动</td>
+    <td>每事件 < 100 bit</td>
+    <td><strong>极低</strong></td>
+    <td>鼻腔传导 + 嗅球神经延迟；Nature Comms 2024 柔性 OG 阵列目标"latency-free"但物理上仍需 ~1s</td>
+  </tr>
+  <tr style="background:#fce4ec">
+    <td><strong>前庭觉（GVS）</strong></td>
+    <td>100–500 ms</td>
+    <td>200–1000 ms</td>
+    <td>10–100 Hz</td>
+    <td>单通道 ≈ 1.6 kbps</td>
+    <td>低</td>
+    <td>GVS 是慢通道，适合做"运动感背景"而非快速反馈</td>
+  </tr>
+  <tr>
+    <td><strong>本体感觉</strong></td>
+    <td>~10 ms（与动觉同源）</td>
+    <td>10–30 ms</td>
+    <td>IMU 100–500 Hz</td>
+    <td>9 轴 IMU ≈ 10 kbps</td>
+    <td>高</td>
+    <td>PiEEG 现有 IMU 已覆盖，无需额外硬件</td>
+  </tr>
+</table>
+
+<div class="highlight-box">
+  <strong>核心工程原则：</strong>
+  <ol style="margin-bottom:0">
+    <li><strong>最快通道（动觉 1ms）定主时钟</strong>，其他通道在各自容忍窗口内异步对齐——不是等所有感官一起到齐。</li>
+    <li><strong>动觉走专用 UDP + 预测渲染</strong>（基于深度学习 haptic prediction 放宽延迟约束）；<strong>音频/视频走 WebRTC</strong>；<strong>温度/嗅觉走事件驱动 HTTP/MQTT</strong>。</li>
+    <li>IEEE 1918.1.1-2024 已标准化触觉 codec（kinesthetic + tactile 压缩）；IETF 正在制定 RTP haptics profile。</li>
+    <li><strong>PiEEG 现有 VR→VRM→AR 链路已有 80–150ms 延迟</strong>（VR 渲染 + 网络 + AR 叠加），动觉 1ms 预算根本不可能在这条链路上实现——<strong>必须放弃动觉力反馈，只做振动/压力/温度。</strong></li>
+  </ol>
+</div>
+</div>
+
+<!-- ==================== 全链路架构 ==================== -->
+<h3>5.1 多感官远程传递全链路架构</h3>
+
+<div class="card">
+<div class="arch-flow">
+  <div class="arch-node">采集端<br><span style="font-weight:400;font-size:11px">FSR压力阵列<br>EMG/EEG<br>IMU/光学动捕<br>空间音频mic<br>温度传感器<br>气味事件trigger</span></div>
+  <div class="arch-arrow">⟶</div>
+  <div class="arch-node">编码/压缩<br><span style="font-weight:400;font-size:11px">触觉codec<br>WebRTC音视频<br>事件驱动温/嗅</span></div>
+  <div class="arch-arrow">⟶</div>
+  <div class="arch-node">网络传输<br><span style="font-weight:400;font-size:11px">WiFi/WebRTC(局域)<br>5G URLLC(同城)<br>预测渲染(跨城)</span></div>
+  <div class="arch-arrow">⟶</div>
+  <div class="arch-node">反馈端<br><span style="font-weight:400;font-size:11px">ERM/LRA振动阵列<br>Peltier温度<br>OG嗅觉阵列<br>超声空中触觉<br>近耳空间音频</span></div>
+</div>
+
+<h4>延迟预算分配（PiEEG 社交触觉场景）</h4>
+<table>
+  <tr><th>环节</th><th>振动触觉</th><th>温度觉</th><th>嗅觉</th><th>空间音频</th></tr>
+  <tr><td>采集</td><td>< 5 ms</td><td>< 100 ms</td><td>事件触发</td><td>< 10 ms</td></tr>
+  <tr><td>编码+网络（局域网）</td><td>< 50 ms</td><td>< 500 ms</td><td>< 1 s</td><td>< 30 ms</td></tr>
+  <tr><td>AR 渲染+致动</td><td>< 15 ms</td><td>< 2 s（Peltier 热惯性）</td><td>< 2 s（雾化扩散）</td><td>< 10 ms</td></tr>
+  <tr><td><strong>总 E2E</strong></td><td><strong>~70 ms</strong></td><td><strong>~2.5 s</strong></td><td><strong>~3 s</strong></td><td><strong>~50 ms</strong></td></tr>
+  <tr><td>是否在感知阈值内</td><td>✅ 是（20–50ms 可接受）</td><td>✅ 是（数百ms–s）</td><td>✅ 是（1–3s）</td><td>✅ 是</td></tr>
+</table>
+</div>
+
+<!-- ==================== 大厂布局 ==================== -->
+<h2>六、大厂与专业公司布局全景</h2>
+
+<div class="card">
+<table>
+  <tr><th style="width:12%">公司</th><th style="width:20%">触觉/多感官产品</th><th style="width:24%">技术路线</th><th style="width:24%">当前状态（2026.09）</th><th style="width:20%">远程通信关联</th></tr>
+  <tr>
+    <td><strong>Meta</strong></td>
+    <td>Neural Band EMG 腕带（带 haptic feedback）、Fluid Reality 电渗泵手套、ReSkin 开源触觉皮肤、Digit 360 指尖传感器</td>
+    <td>sEMG 腕带通用解码 + 微流体触觉手套 + 磁性触觉皮肤</td>
+    <td>Neural Band 2025.09 随 Ray-Ban Display $799 量产（20 万受试者，20.9 WPM，IPX7）；Fluid Reality/ReSkin 研究阶段</td>
+    <td>Ray-Ban Display + Codec Avatars ("Hologram"品牌) 构成远程通信底座；触觉未进入消费产品</td>
+  </tr>
+  <tr>
+    <td><strong>Google</strong></td>
+    <td>Project Starline → Google Beam、Soli 雷达</td>
+    <td>6 相机阵列 + AI 体积视频 + 光场显示 + 环绕声</td>
+    <td>Google Beam 2025.05 I/O 发布，2026 年面向企业发货；HP Dimension 设备 $24,999</td>
+    <td><strong>不做触觉，专注视觉+音频极致</strong>；远程通信是核心场景</td>
+  </tr>
+  <tr>
+    <td><strong>Apple</strong></td>
+    <td>Vision Pro Digital Crown 线性马达、AirPods 触觉专利、Force Touch 专利</td>
+    <td>戴耳开放式空间音频 + 眼手追踪；无身体触觉</td>
+    <td>Vision Pro M5 商用；无官方触觉配件；专利揭示 AirPods 向耳部输出触觉与 Vision Pro 同步</td>
+    <td>SharePlay + FaceTime Spatial Audio + Persona；<strong>明确不做身体触觉</strong></td>
+  </tr>
+  <tr>
+    <td><strong>NTT / DOCOMO</strong></td>
+    <td>StrongTouch 超声触觉、FEEL TECH、Fure-au Denwa 触觉电话</td>
+    <td>超声相控阵+旋转焦点（力觉增强 20 倍）+ IOWN/6G 光网络</td>
+    <td>2025 大阪世博公开演示；技术论文发表；面向"人类互联网"</td>
+    <td><strong>远程触觉通信的最激进布局者</strong>；IOWN 超低延迟网络是核心差异化</td>
+  </tr>
+  <tr>
+    <td><strong>bHaptics</strong></td>
+    <td>TactSuit X40/X16、TactGlove DK3、TactSleeve、Tactosy 足部</td>
+    <td>ERM/LRA 振动触觉，BLE <20ms，300+ VR 游戏支持</td>
+    <td>消费级在售：TactSuit X40 $499、TactGlove $299；CES 2025 新品</td>
+    <td>消费级触觉背心市占第一；本质是"振动方向提示"，非力/压力反馈；无远程通信产品</td>
+  </tr>
+  <tr>
+    <td><strong>HaptX</strong></td>
+    <td>HaptX Gloves G1（2024 量产）</td>
+    <td>微流控气动，每手 135 触点，皮肤位移 2mm，外骨骼力反馈</td>
+    <td>商用产品，面向企业培训和高端 VR，价格较高</td>
+    <td>专业级触觉手套标杆；可用于远程遥操作但非消费级</td>
+  </tr>
+  <tr>
+    <td><strong>Teslasuit</strong></td>
+    <td>Teslasuit 4 / XR5（2026 CES）</td>
+    <td>全身 EMS+TENS 电刺激（80+ 触点）+ 半导体制冷温度反馈（20–40°C）+ 14 组动捕</td>
+    <td>企业/研究级产品；2019 年与 Vodafone 合作 5G 远程橄榄球撞击传输（经典案例）</td>
+    <td>唯一全身多感官套装；但价格高、穿着复杂、EMS 个体差异大</td>
+  </tr>
+  <tr>
+    <td><strong>Manus</strong></td>
+    <td>Metagloves Pro Haptic（2025）、Prime X</td>
+    <td>EMF 追踪 + 集成触觉，25 DoF 全解剖手，tendon-driven 力反馈，ROS SDK 低延迟</td>
+    <td>商用产品，面向机器人遥操作、动捕、AI 训练数据</td>
+    <td>对接 50+ 机器人手模型；<strong>PiEEG 数字人+机器人方向可直接对接</strong></td>
+  </tr>
+  <tr>
+    <td><strong>字节/PICO</strong></td>
+    <td>PICO 4 Ultra 无环控制器（宽带线性马达）、PICO Motion Trackers（£80/对，开放 API）</td>
+    <td>MR 一体机 + 自研芯片；Tracker 允许 LBE 场馆装在带扳机/触觉马达的道具上</td>
+    <td>2024.09 发布 Motion Tracker；开放 API 是字节在触觉配件上最开放的一步</td>
+    <td>PICO 社交 + VRChat 第三方；无自研触觉背心</td>
+  </tr>
+  <tr>
+    <td><strong>索尼</strong></td>
+    <td>PS VR2 Sense 控制器（Adaptive Triggers）、Tempest 3D Audio</td>
+    <td>每手柄单 actuator 触觉 + Adaptive Triggers（弓弦张力、卡壳冲击、挤压碎裂）</td>
+    <td>PS VR2 商用；触觉能力集中在游戏手柄自适应扳机</td>
+    <td>未做远程社交触觉</td>
+  </tr>
+  <tr>
+    <td><strong>Ultraleap → SIM IP</strong></td>
+    <td>STRATOS Explore 空中超声触觉</td>
+    <td>超声换能器阵列聚焦产生空气触觉，集成 Leap Motion 手追踪</td>
+    <td>商用开发套件；2025 年 SIM IP 收购其触觉+XR 专利组合（500+ 资产）</td>
+    <td>远程通信场景用得少，更偏车载/信息亭；<strong>但 AR 端"隔空触摸"潜力大</strong></td>
+  </tr>
+</table>
+
+<div class="highlight-box">
+  <strong>大厂格局一句话：</strong>Meta 用 EMG 腕带占位非侵入神经接口但触觉未消费化；Google/Apple 明确不做身体触觉（专注视觉+音频）；NTT 是远程触觉通信最激进布局者（超声+IOWN 光网络）；专业触觉公司（bHaptics/HaptX/Manus/Teslasuit）覆盖企业/游戏市场但无远程通信产品。<strong>没有任何一家大厂把"多感官远程通信"做成消费级产品——这是 PiEEG 的机会窗口。</strong>
+</div>
+</div>
+
+<!-- ==================== 技术成熟度矩阵 ==================== -->
+<h2>七、技术成熟度矩阵</h2>
+
+<div class="card">
+<table>
+  <tr><th style="width:22%">技术方向</th><th style="width:14%">成熟度</th><th style="width:32%">已成熟部分</th><th style="width:32%">关键瓶颈</th></tr>
+  <tr>
+    <td>振动触觉（背心/手套/袖套）</td>
+    <td><span class="tag tag-mature">成熟</span></td>
+    <td>bHaptics 全系列商用，BLE <20ms，300+ 内容支持</td>
+    <td>空间分辨率有限，无法传递纹理/形状/压力细节</td>
+  </tr>
+  <tr>
+    <td>空间音频 / HRTF</td>
+    <td><span class="tag tag-mature">成熟</span></td>
+    <td>Apple/Meta/Google/索尼全生态支持；DL 个性化 HRTF</td>
+    <td>个性化 HRTF 测量仍需专用设备；前后混淆未完全解决</td>
+  </tr>
+  <tr>
+    <td>远程化身通信（视觉+音频）</td>
+    <td><span class="tag tag-mature">成熟</span></td>
+    <td>Google Beam、Meta Codec Avatars、Apple Persona、Microsoft Mesh</td>
+    <td>光场显示设备昂贵；avatar 表情/眼神真实感仍有差距</td>
+  </tr>
+  <tr>
+    <td>力反馈/运动觉手套</td>
+    <td><span class="tag tag-growing">快速发展中</span></td>
+    <td>HaptX G1、Manus Pro Haptic、SenseGlove R1 商用</td>
+    <td>笨重昂贵；延迟要求 ≤1-10ms 跨空间不可行；外骨骼影响自然运动</td>
+  </tr>
+  <tr>
+    <td>气压/流体触觉</td>
+    <td><span class="tag tag-growing">快速发展中</span></td>
+    <td>Haptiknit（40N）、Fluid Reality（160 致动器无线）证明高可行性</td>
+    <td>传统气动需外置气泵；电渗泵方案刚突破仍是原型；致动延迟 50–200ms</td>
+  </tr>
+  <tr>
+    <td>超声空中触觉</td>
+    <td><span class="tag tag-growing">快速发展中</span></td>
+    <td>NTT 2025 突破（旋转焦点力觉增强 20 倍）；Ultraleap 商用套件</td>
+    <td>近距离（~数十厘米）、单点/少数点、无法覆盖全身、力觉仍偏弱</td>
+  </tr>
+  <tr>
+    <td>温度觉显示</td>
+    <td><span class="tag tag-growing">快速发展中</span></td>
+    <td>Peltier 手套/指套商用原型；Teslasuit 全身温度反馈</td>
+    <td>Peltier 热惯性大（2–5s）；积热/散热/重量/刚性问题</td>
+  </tr>
+  <tr>
+    <td>电触觉（EMS/TENS/经皮电刺激）</td>
+    <td><span class="tag tag-frontier">前沿探索</span></td>
+    <td>Teslasuit 全身 EMS；SPETH 自供电手套（Science Advances 2025）</td>
+    <td>个体差异大、感觉偏"刺痛"、舒适阈窄、安全边界需严格控制</td>
+  </tr>
+  <tr>
+    <td>柔性电子皮肤（采集端）</td>
+    <td><span class="tag tag-growing">快速发展中</span></td>
+    <td>亚毫米分辨率（700μm）、多模态、自供电均已实验室实现</td>
+    <td>导线/读出电路柔性化、量产工艺、长期生物相容性</td>
+  </tr>
+  <tr>
+    <td>柔性电子皮肤（显示端）</td>
+    <td><span class="tag tag-frontier">前沿探索</span></td>
+    <td>CMU Majidi Lab Nature Electronics 2025 贴肤多模态触觉接口</td>
+    <td>耐久性、长时间佩戴舒适度、多点独立寻址</td>
+  </tr>
+  <tr>
+    <td>嗅觉显示</td>
+    <td><span class="tag tag-frontier">前沿探索</span></td>
+    <td>北航 32 OG 柔性阵列（Nature Comms 2024）；OVR/Feelreal 商用原型</td>
+    <td>气味生成/合成技术不成熟；设备体积大；延迟 1–3s；AI scent teleportation 刚起步</td>
+  </tr>
+  <tr>
+    <td>前庭觉反馈（GVS）</td>
+    <td><span class="tag tag-frontier">前沿探索</span></td>
+    <td>MIT Media Lab 奠基（CHI 2019）；Bath/Glasgow EEG-tACS 闭环（2025）</td>
+    <td>安全边界、个体差异大、晕动症效果不稳定；不适合双人主链路</td>
+  </tr>
+  <tr>
+    <td>完整远程触觉系统（端到端）</td>
+    <td><span class="tag tag-growing">快速发展中</span></td>
+    <td>北航握手、USC 16 人社交触摸、NTT 触觉电话、ETRI XR 等已闭环</td>
+    <td>仅限手/前臂、局域网/5G 专网、振动/压力二选一；跨城不可行；无触觉编码标准</td>
+  </tr>
+</table>
+</div>
+
+<!-- ==================== PiEEG 叠加触觉可行性 ==================== -->
+<h2>八、在 PiEEG 架构上叠加触觉/多感官的可行性评估</h2>
+
+<div class="card">
+<h3>8.1 现有架构回顾</h3>
+<div class="arch-flow">
+  <div class="arch-node">VR 端<br>EEG(PiEEG) + EMG(全身)<br>光学动捕 + IMU</div>
+  <div class="arch-arrow">⟹</div>
+  <div class="arch-node">神经-运动建模<br>VRM 数字人</div>
+  <div class="arch-arrow">⟹</div>
+  <div class="arch-node">网络<br>WebRTC/QUIC</div>
+  <div class="arch-arrow">⟹</div>
+  <div class="arch-node">AR 端<br>手机 SLAM + VRM 入真</div>
+</div>
+
+<h3>8.2 叠加触觉的技术瓶颈分析</h3>
+<table>
+  <tr><th style="width:24%">瓶颈</th><th style="width:10%">严重度</th><th style="width:66%">说明与对策</th></tr>
+  <tr>
+    <td><strong>端到端延迟预算</strong></td>
+    <td>🔴 高</td>
+    <td>现有 VR→VRM→AR 链路已有 80–150ms。动觉 1ms 预算根本不可能实现——<strong>必须放弃动觉力反馈，只做振动/压力/温度</strong>。振动触觉 20–50ms 容忍窗口在 80–150ms 总延迟下仍可接受（社交触觉场景）。</td>
+  </tr>
+  <tr>
+    <td><strong>采集端：压力传感器放哪</strong></td>
+    <td>🟡 中</td>
+    <td>现有 EMG 腕带在小臂，可复用腕带外形加 4–8 点 FSR（force-sensitive resistor）或电容式压力传感器；不需要新手套。手指接触压力可在指尖加单点 FSR。<strong>Meta ReSkin 开源磁性触觉皮肤可作为采集端参考。</strong></td>
+  </tr>
+  <tr>
+    <td><strong>反馈端：致动器选什么</strong></td>
+    <td>🟡 中</td>
+    <td>AR 端用户没有 VR 头显，不能戴触觉背心。<strong>最佳方案是 AR 端也戴一个腕带（振动+Peltier）</strong>，VR 端戴另一个，两人双向。或用超声空中触觉实现 AR 端"不戴设备被隔空触摸"。</td>
+  </tr>
+  <tr>
+    <td><strong>温度觉</strong></td>
+    <td>🟢 低</td>
+    <td>Peltier 模块延迟容忍 500ms–2s，完全不占主链路预算；放腕带或指环即可。传递"对方手心温度""拥抱时体温"。</td>
+  </tr>
+  <tr>
+    <td><strong>嗅觉</strong></td>
+    <td>🟢 低</td>
+    <td>事件触发式，1–3s 延迟可接受；可挂 Feelreal 或柔性 OG 阵列，但<strong>不建议进第一期</strong>。</td>
+  </tr>
+  <tr>
+    <td><strong>前庭觉 GVS</strong></td>
+    <td>🔴 高风险</td>
+    <td>耳后电极电流刺激有安全边界，晕动症个体差异大；<strong>只做研究演示，不进入双人主链路</strong>。</td>
+  </tr>
+  <tr>
+    <td><strong>多感官时间同步</strong></td>
+    <td>🟡 中</td>
+    <td>用 LSL 统一所有流的时间戳（PiEEG 原生支持 LSL）。主时钟选动捕 IMU（200Hz），触觉/音频在各自窗口内对齐。<strong>不是等所有感官到齐，而是按最快通道定 deadline。</strong></td>
+  </tr>
+  <tr>
+    <td><strong>触觉编码标准缺失</strong></td>
+    <td>🟡 中</td>
+    <td>没有像 H.264 那样的"触觉编码标准"，各系统私有。IEEE 1918.1.1-2024 已标准化触觉 codec，IETF 正在制定 RTP haptics profile。<strong>PiEEG 可定义自己的"社交触觉事件"协议（握手/拍肩/拥抱/温度），不追求通用触觉编码。</strong></td>
+  </tr>
+</table>
+</div>
+
+<!-- ==================== 分三期行动建议 ==================== -->
+<h2>九、分三期行动建议</h2>
+
+<div class="phase-card phase-1">
+<h3>🟢 第一期（0–6 个月）：振动触觉 + 空间音频（科研原型）</h3>
+<ul>
+  <li><strong>采集端：</strong>VR 端现有 EMG 腕带硬件加 4 点 FSR，检测"握手/拍肩"事件（压力阈值 + 持续时间模板匹配）。指尖加单点 FSR 检测接触。</li>
+  <li><strong>反馈端：</strong>AR 端用户戴 bHaptics TactSleeve（每臂 3 ERM，$99/对）或自研 3D 打印腕带 + LRA 线性谐振致动器。</li>
+  <li><strong>网络：</strong>WebRTC DataChannel（UDP），触觉事件以 JSON over DataChannel 传输（< 100 byte/事件）。空间音频走 WebRTC 音频通道。</li>
+  <li><strong>同步：</strong>触觉事件时间戳随 VRM 动画帧一起发；AR 端在 avatar 手接触虚拟身体部位时触发对应位置振动。</li>
+  <li><strong>VRM 扩展：</strong>在 VRM 模型上标注"触觉热点"（手掌、肩膀、背部、脸颊），当 avatar 接触这些区域时触发对应致动器。</li>
+  <li><strong>预期 E2E：</strong>80–150ms，对社交触觉完全可接受。</li>
+  <li><strong>验证目标：</strong>双人跨空间"握手→振动反馈"闭环跑通；用户研究验证 social presence 提升（参考 Frontiers 2025 n=128 量表）。</li>
+</ul>
+</div>
+
+<div class="phase-card phase-2">
+<h3>🔵 第二期（6–12 个月）：温度觉 + 压力分级 + 超声空中触觉</h3>
+<ul>
+  <li><strong>温度觉：</strong>腕带加 Peltier 模块（如 TEGWAY S017 或 5×5mm 微型模块），传递"对方手心温度""拥抱时体温"。延迟容忍 500ms–2s，完全不占主链路。</li>
+  <li><strong>压力分级：</strong>FSR 从 4 点扩到 8 点，分级传递握力（轻握/紧握/拥抱力度）。参考北航 Distant Handshakes 的四通道编码（压力分布+握力+时序+温度）。</li>
+  <li><strong>超声空中触觉（AR 端差异化）：</strong>在 AR 端用户面前放置超声相控阵（或参考 NTT/Ultraleap 方案），当 VR 端 avatar 的手"触碰"AR 端用户身体部位时，在对应空间位置产生超声触觉点。<strong>AR 端用户不戴任何设备即可被"隔空触摸"。</strong></li>
+  <li><strong>嗅觉（可选）：</strong>挂 Feelreal 或自研 8 通道 OG（参考北航 Nature Comms 2024 方案），事件触发式（"对方送了一束花""一起喝咖啡"）。</li>
+  <li><strong>EEG 神经状态绑定：</strong>将 VR 端 EEG 解码的认知负荷/注意力状态与触觉强度绑定——如"对方注意力集中时握手更有力"，这是 PiEEG 的独特差异化。</li>
+  <li><strong>验证目标：</strong>发表 1 篇多感官社交触觉论文；系统可实时演示"握手振动+体温+隔空触摸"的双人跨空间体验。</li>
+</ul>
+</div>
+
+<div class="phase-card phase-3">
+<h3>🟠 第三期（12–24 个月）：研究方向（不承诺工程化）</h3>
+<ul>
+  <li><strong>高分辨率气动触觉：</strong>参考 Fluid Reality 电渗泵手套（160 致动器无线）或 Haptiknit 针织套筒，将振动升级为真实压力/形状反馈。</li>
+  <li><strong>前庭觉 GVS：</strong>耳后电极跟随 VR 端 avatar 头部转向产生"轻微倾斜感"，仅用于抗晕动增强，不用于远程传递。参考 Bath/Glasgow EEG-tACS 闭环方案。</li>
+  <li><strong>柔性电子皮肤采集端：</strong>将 FSR 阵列升级为柔性电子皮肤（亚毫米分辨率），采集更精细的触摸压力分布，为未来高分辨率反馈做数据积累。</li>
+  <li><strong>远程面部触摸（创新空白）：</strong>目前所有系统都只覆盖手/前臂/躯干，AR 端面部触觉传递（如"对方轻抚你的脸颊"）是明确空白。可通过 AR 眼镜边框振动+超声聚焦面部实现。</li>
+  <li><strong>跨城远程触觉：</strong>用深度学习力反馈预测（arXiv 2507.00571）+ 虚拟模型掩盖跨城 RTT 130–200ms 的延迟。仅做研究演示。</li>
+</ul>
+</div>
+
+<!-- ==================== 结论 ==================== -->
+<h2>十、结论</h2>
+
+<div class="conclusion-big">
+  PiEEG 2026 叠加触觉/多感官远程传递：<strong>第一期振动触觉+空间音频 6 个月内可跑通原型；</strong><br>
+  第二期温度觉+超声隔空触摸 12 个月可形成论文级系统；<br>
+  高分辨率力反馈/嗅觉/前庭觉是研究方向，不进入主链路。<br>
+  <strong>差异化壁垒：EEG/EMG 神经状态 + 社交触觉事件的绑定，这是 2022–2026 文献中的空白带。</strong>
+</div>
+
+<div class="card">
+<h3>📌 最终建议清单</h3>
+<ol>
+  <li><strong>不要追求"全感官远程传递"——按感官延迟敏感度分层。</strong>动觉力反馈跨空间不可行（1ms 预算 vs 现有链路 80–150ms），放弃；振动触觉（20–50ms 容忍）可行；温度觉（数百ms–s）和嗅觉（1–3s）延迟容忍极大，容易叠加。</li>
+  <li><strong>第一期用现成硬件跑通闭环，不要一上来就自研。</strong>bHaptics TactSleeve（$99/对）+ WebRTC DataChannel + VRM 触觉热点标注，6 个月内可跑通"握手→振动"双人闭环。</li>
+  <li><strong>社交触觉优先于操作触觉。</strong>握手/拍肩/拥抱的延迟容忍比抓握易碎物大 10–100 倍，且情感体验已被 USC/北航验证显著提升。不要做遥操作手术级触觉。</li>
+  <li><strong>超声空中触觉是 AR 端的差异化武器。</strong>NTT 2025 年旋转焦点突破使力觉增强 20 倍，AR 端用户不戴设备即可被"隔空触摸"——这与 PiEEG 的 AR 端形态高度契合，是 Meta/Google 都没有做的方向。</li>
+  <li><strong>把 EEG/EMG 和触觉绑定，这是真正的创新点。</strong>不是"又一个触觉背心"，而是"对方注意力集中时握手更有力""对方紧张时拥抱更紧"——神经生理状态驱动社交触觉强度，这在 2022–2026 文献中是空白。</li>
+  <li><strong>评估量表直接复用成熟工具。</strong>Networked Mind Measurement (NMM) 四分量表（self/other co-presence + psychological engagement，34 项 7 分制）+ 皮肤电 EDA 同步性（PiEEG 可加 EDA 通道）+ Frontiers 2025 n=128 社交 VR 量表。</li>
+  <li><strong>远程面部触摸是下一个创新空白。</strong>目前所有完整系统都只覆盖手/前臂/躯干，AR 端面部触觉传递（"对方轻抚你的脸颊"）无人做，可通过 AR 眼镜边框振动+超声聚焦面部实现。</li>
+</ol>
+</div>
+
+<div class="footer">
+  <p>PiEEG 2026 补充报告：触觉与多感官跨空间传递可行性分析 | 调研时间：2026 年 9 月</p>
+  <p>覆盖论文 36 篇 | 院校项目 18 个 | 大厂/公司 20 家 | 完整远程触觉系统 10+ 个</p>
+  <p style="margin-top:8px">配套主报告：PiEEG 2026 可行性分析报告（视觉/神经/动捕/数字人/AR 架构）</p>
+  <p>所有数据均来自公开检索的论文/官网/技术报告；触觉/温度/嗅觉领域的 E2E 延迟数字多数来自厂商自测或论文原型，跨系统对比时需注意实验条件差异。</p>
+</div>
+
+</div>
+</body>
+</html>
