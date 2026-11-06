@@ -273,10 +273,15 @@ function applyBody(pose) {
   }
   const get=key=>target.get(key);
   const shoulder=get('shoulders'), hip=get('hips'), torso=get('midtorso'), neck=get('neck'), nose=get('nose');
+  // Keep the torso as a stable human volume.  A monocular camera does not give
+  // reliable depth for the spine, so letting every spine segment chase noisy
+  // 2-D landmarks creates the characteristic "broken waist" twist.  The
+  // pelvis remains anchored and only a very small correction is allowed here;
+  // shoulders/arms still follow the detected pose independently.
   const spinePairs=[
-    ['spine_01',hip,torso,.10,.08],['spine_02',torso,shoulder,.10,.08],['spine_03',shoulder,neck,.08,.06],
-    ['clavicle_l',shoulder,get(11),.12,.18],['clavicle_r',shoulder,get(12),.12,.18],
-    ['neck_01',shoulder,nose,.10,.16]
+    ['spine_01',hip,torso,.035,.04],['spine_02',torso,shoulder,.04,.05],['spine_03',shoulder,neck,.05,.08],
+    ['clavicle_l',shoulder,get(11),.08,.12],['clavicle_r',shoulder,get(12),.08,.12],
+    ['neck_01',shoulder,nose,.06,.10]
   ];
   for(const [bone,from,to,strength,maxAngle] of spinePairs) if(from&&to) setBoneToward(bone,from,to,strength,maxAngle);
 
