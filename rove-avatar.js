@@ -1,5 +1,5 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from 'three';
+import { GLTFLoader } from './node_modules/three/examples/jsm/loaders/GLTFLoader.js';
 
 const canvas = document.querySelector('#avatar-canvas');
 const empty = document.querySelector('#empty');
@@ -22,7 +22,7 @@ let avatarRoot, restRig = new Map(), boneMap = new Map(), loaded = false, modelS
 let limbLengths = {};
 let faceBindings = [];
 let faceTest = null, faceOverride = null, lastFaceCategories = [];
-let lastHipCenter = null, calibratedHip = null, lastHeadAngles = { yaw: 0, roll: 0 }, calibratedHead = { yaw: 0, roll: 0 };
+let lastHipCenter = null, calibratedHip = null, lastHeadAngles = { yaw: 0, pitch: 0, roll: 0 }, calibratedHead = { yaw: 0, pitch: 0, roll: 0 };
 let defaultModelReport = '';
 const tempQ = new THREE.Quaternion(), parentQ = new THREE.Quaternion(), deltaQ = new THREE.Quaternion();
 const tempDir = new THREE.Vector3();
@@ -211,6 +211,26 @@ function setBoneToward(name, from, to, strength = .28, maxAngle = Math.PI) {
   rest.bone.updateWorldMatrix(true, true);
 }
 
+function setBoneWorldQuaternion(name, worldQuaternion, strength = .28) {
+  const rest=restRig.get(name);
+  if(!rest)return;
+  const local=worldQuaternion.clone();
+  const parent=rest.bone.parent;
+  if(parent){parent.updateWorldMatrix(true,false);parent.getWorldQuaternion(parentQ).invert();local.premultiply(parentQ);}
+  rest.bone.quaternion.slerp(local,strength);
+  rest.bone.updateWorldMatrix(true,true);
+}
+
+function orientationFrame(longAxis, acrossAxis) {
+  if(longAxis.lengthSq()<1e-6||acrossAxis.lengthSq()<1e-6)return null;
+  const y=longAxis.clone().normalize();
+  const x=acrossAxis.clone().addScaledVector(y,-acrossAxis.dot(y)).normalize();
+  if(x.lengthSq()<1e-6)return null;
+  const z=x.clone().cross(y).normalize();
+  x.crossVectors(y,z).normalize();
+  return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x,y,z));
+}
+
 function worldPoint(name) {
   const bone = boneMap.get(name);
   return bone ? bone.getWorldPosition(new THREE.Vector3()) : null;
@@ -254,9 +274,9 @@ function applyBody(pose) {
   const get=key=>target.get(key);
   const shoulder=get('shoulders'), hip=get('hips'), torso=get('midtorso'), neck=get('neck'), nose=get('nose');
   const spinePairs=[
-    ['spine_01',hip,torso,.14,.16],['spine_02',torso,shoulder,.14,.16],['spine_03',shoulder,neck,.14,.2],
-    ['clavicle_l',shoulder,get(11),.18,.3],['clavicle_r',shoulder,get(12),.18,.3],
-    ['neck_01',shoulder,nose,.14,.25]
+    ['spine_01',hip,torso,.10,.08],['spine_02',torso,shoulder,.10,.08],['spine_03',shoulder,neck,.08,.06],
+    ['clavicle_l',shoulder,get(11),.12,.18],['clavicle_r',shoulder,get(12),.12,.18],
+    ['neck_01',shoulder,nose,.10,.16]
   ];
   for(const [bone,from,to,strength,maxAngle] of spinePairs) if(from&&to) setBoneToward(bone,from,to,strength,maxAngle);
 
@@ -264,15 +284,16 @@ function applyBody(pose) {
   for (const side of ['l','r']) {
     const lengths=limbLengths[`arm_${side}`];
     const upper=boneMap.get(`upperarm_${side}`);
-    const wrist=get(side==='l'?15:16), mcp=get(side==='l'?17:18);
+    const elbow=get(side==='l'?13:14), wrist=get(side==='l'?15:16), mcp=get(side==='l'?17:18);
     if(!upper||!lengths?.upper||!lengths?.lower||!wrist) continue;
     upper.updateWorldMatrix(true,false);
     const root=upper.getWorldPosition(new THREE.Vector3());
     const outward=Math.sign(root.x||1);
-    const ik=solveTwoBone(root,wrist,lengths.upper,lengths.lower,new THREE.Vector3(outward*.55,-1,-.55));
+    const poleHint=elbow?elbow.clone().sub(root):new THREE.Vector3(outward*.55,-1,-.55);
+    const ik=solveTwoBone(root,wrist,lengths.upper,lengths.lower,poleHint);
     if(!ik) continue;
-    aimBone(`upperarm_${side}`,root,ik.joint,.32,2.2);
-    aimBone(`lowerarm_${side}`,worldPoint(`lowerarm_${side}`),ik.goal,.32,2.5);
+    aimBone(`upperarm_${side}`,root,ik.joint,.32,1.9);
+    aimBone(`lowerarm_${side}`,worldPoint(`lowerarm_${side}`),ik.goal,.32,2.2);
     const handHead=worldPoint(`hand_${side}`);
     if(handHead&&mcp) setBoneToward(`hand_${side}`,handHead,mcp,.18,.8);
   }
@@ -326,8 +347,16 @@ function applyHands(hands, handedness, pose, handsWorld, scale, origin) {
       if (!head || !vec) return;
       setBoneToward(`${name}_${side}`, head, head.clone().add(vec), strength, maxAngle);
     };
-    const handHead = worldPoint(`hand_${side}`), palm = direction(0, 9);
-    if (handHead && palm) setBoneToward(`hand_${side}`, handHead, handHead.clone().add(palm), .22, .9);
+    const handRest=restRig.get(`hand_${side}`),middleRest=restRig.get(`middle_01_${side}`),indexRest=restRig.get(`index_01_${side}`),pinkyRest=restRig.get(`pinky_01_${side}`);
+    const sourceLong=handRest&&middleRest?middleRest.worldPosition.clone().sub(handRest.worldPosition):null;
+    const sourceAcross=indexRest&&pinkyRest?indexRest.worldPosition.clone().sub(pinkyRest.worldPosition):null;
+    const targetLong=direction(0,9),targetAcross=direction(17,5);
+    const sourceFrame=sourceLong&&sourceAcross?orientationFrame(sourceLong,sourceAcross):null;
+    const targetFrame=targetLong&&targetAcross?orientationFrame(targetLong,targetAcross):null;
+    if(handRest&&sourceFrame&&targetFrame){
+      const delta=targetFrame.multiply(sourceFrame.invert());
+      setBoneWorldQuaternion(`hand_${side}`,delta.multiply(handRest.worldQuaternion),.38);
+    }
     apply('thumb_01', 1, 2, .5, 1.1); apply('thumb_02', 2, 3, .5, 1.0); apply('thumb_03', 3, 4, .5, .9);
     for (const [name, start] of fingers) {
       apply(`${name}_01`, start, start + 1, .5, 1.3);
@@ -413,17 +442,26 @@ window.addEventListener('rove-face-test', () => {
 function applyHead(landmarks) {
   const rest = restRig.get('head');
   if (!rest) return;
-  let yaw = 0, roll = 0;
+  let yaw = 0, pitch = 0, roll = 0;
   if (landmarks?.[33] && landmarks?.[263] && landmarks?.[1]) {
     const a = landmarks[33], b = landmarks[263], nose = landmarks[1];
     const left = a.x <= b.x ? a : b, right = a.x <= b.x ? b : a;
     const width = Math.max(.04, right.x - left.x);
     yaw = THREE.MathUtils.clamp((nose.x - (left.x + right.x) / 2) / width * 1.5, -.45, .45);
     roll = THREE.MathUtils.clamp(-Math.atan2(right.y - left.y, right.x - left.x), -.4, .4);
+    if(landmarks[10]&&landmarks[152]){
+      const point=p=>new THREE.Vector3(p.x,-p.y,-(p.z??0));
+      const eyeAxis=point(right).sub(point(left)).normalize();
+      const faceUp=point(landmarks[10]).sub(point(landmarks[152])).normalize();
+      const normal=eyeAxis.cross(faceUp).normalize();
+      if(normal.z<0)normal.negate();
+      pitch=THREE.MathUtils.clamp(-Math.atan2(normal.y,Math.max(.1,normal.z)),-.45,.45);
+      yaw=THREE.MathUtils.clamp(Math.atan2(normal.x,Math.max(.1,normal.z)),-.45,.45);
+    }
   }
-  lastHeadAngles = { yaw, roll };
-  yaw -= calibratedHead.yaw; roll -= calibratedHead.roll;
-  const target = rest.localQuaternion.clone().multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0, yaw, roll, 'XYZ')));
+  lastHeadAngles = { yaw, pitch, roll };
+  yaw -= calibratedHead.yaw; pitch -= calibratedHead.pitch; roll -= calibratedHead.roll;
+  const target = rest.localQuaternion.clone().multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(pitch, yaw, roll, 'XYZ')));
   rest.bone.quaternion.slerp(target, landmarks?.length ? .16 : .08);
   rest.bone.updateWorldMatrix(true, true);
 }

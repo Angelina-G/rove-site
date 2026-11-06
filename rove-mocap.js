@@ -1,5 +1,6 @@
 const visionVersion = '0.10.21';
 const visionCdnRoots = [
+  new URL('./node_modules/@mediapipe/tasks-vision', location.href).href,
   `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${visionVersion}`,
   `https://fastly.jsdelivr.net/npm/@mediapipe/tasks-vision@${visionVersion}`,
   `https://registry.npmmirror.com/@mediapipe/tasks-vision/${visionVersion}/files`,
@@ -65,7 +66,7 @@ const handConnections = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[
 
 async function setup() {
   if (poseTask && handTask && faceTask) return;
-  status.textContent = '正在加载身体、手部与面部模型…首次加载需要网络';
+  status.textContent = '正在从本机加载身体、手部与面部模型…';
   trackingBadge.textContent = '◌ 正在加载追踪模型';
   let vision, wasmError;
   const wasmRoots = [...new Set([visionCdn, ...visionCdnRoots])];
