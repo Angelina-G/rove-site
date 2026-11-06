@@ -15,7 +15,7 @@ import { randomUUID } from 'node:crypto';
 import {
   readFileSync, createReadStream, existsSync, readdirSync, statSync, openSync, readSync, closeSync, cpSync,
 } from 'node:fs';
-import { writeFile, unlink, mkdir, stat, rm, rename } from 'node:fs/promises';
+import { writeFile, unlink, mkdir, stat, rm, rename, cp } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import zlib from 'node:zlib';
@@ -952,66 +952,80 @@ function maskEditState() {
 
 async function startMultiviewRun({ maskVersion, octree }) {
   const outDir = path.join(JOBS_DIR, 'hunyuan3d-2mv-v3');
-  const backupDir = path.join(JOBS_DIR, `.hunyuan3d-2mv-v3-previous-${randomUUID()}`);
-  let preserved = false;
-  if (existsSync(outDir)) {
-    await rename(outDir, backupDir);
-    preserved = true;
+  // Windows 上正在被浏览器/杀毒软件读取的目录无法可靠 rename。
+  // 先写入唯一 staging 目录，任务成功后再尝试提升；失败时保留上一版结果。
+  const stagingDir = path.join(JOBS_DIR, `.hunyuan3d-2mv-v3-running-${randomUUID()}`);
+  await mkdir(stagingDir, { recursive: true });
+  const consoleFile = path.join(stagingDir, 'console.log');
+  const args = [
+    'multiview_worker.py', '--preset', 'full', '--octree', String(octree),
+    '--steps', '5', '--profile', '4', '--mask-version', maskVersion, '--out-dir', stagingDir,
+  ];
+  let fd;
+  try { fd = openSync(consoleFile, 'a'); } catch (e) {
+    await rm(stagingDir, { recursive: true, force: true }).catch(() => {});
+    throw new Error(`无法创建任务日志：${e.message}`);
   }
+  let child;
   try {
-    await mkdir(outDir, { recursive: true });
-    const consoleFile = path.join(outDir, 'console.log');
-    const args = [
-      'multiview_worker.py', '--preset', 'full', '--octree', String(octree),
-      '--steps', '5', '--profile', '4', '--mask-version', maskVersion, '--out-dir', outDir,
-    ];
-    let fd;
-    try { fd = openSync(consoleFile, 'a'); } catch (e) { throw new Error(`无法创建任务日志：${e.message}`); }
-    let child;
-    try {
-      child = spawn(HY_PYTHON, args, {
-        cwd: GEN_ROOT, windowsHide: true,
-        env: {
-          ...process.env,
-          HF_HOME: path.join(GEN_ROOT, 'cache', 'huggingface'),
-          HY3DGEN_MODELS: path.join(GEN_ROOT, 'weights'),
-        },
-        stdio: ['ignore', fd, fd],
-      });
-    } finally {
-      try { closeSync(fd); } catch { /* ignore */ }
-    }
-    const run = { startedAt: Date.now(), outDir, maskVersion, stage: 'starting', done: false, error: null, consoleFile, log: [], backupDir: preserved ? backupDir : null };
-    const restorePrevious = async () => {
-      if (!preserved) return;
-      await rm(outDir, { recursive: true, force: true }).catch(() => {});
-      await rename(backupDir, outDir).catch(() => {});
-      preserved = false;
-    };
-    child.on('error', async (e) => {
-      await restorePrevious();
-      run.done = true; run.error = e.message; run.stage = 'failed';
+    child = spawn(HY_PYTHON, args, {
+      cwd: GEN_ROOT, windowsHide: true,
+      env: {
+        ...process.env,
+        HF_HOME: path.join(GEN_ROOT, 'cache', 'huggingface'),
+        HY3DGEN_MODELS: path.join(GEN_ROOT, 'weights'),
+      },
+      stdio: ['ignore', fd, fd],
     });
-    child.on('close', async (code) => {
-      run.done = true;
-      run.stage = code === 0 ? 'complete' : 'failed';
-      if (code !== 0) {
-        run.error = `python 退出码 ${code}（日志：${path.relative(GEN_ROOT, consoleFile)}）`;
-        await restorePrevious();
-      } else if (preserved) {
-        await rm(backupDir, { recursive: true, force: true }).catch(() => {});
-        preserved = false;
-      }
-      refreshMultiviewStage(run);
-      if (multiviewRun === run) setTimeout(() => { if (multiviewRun === run) multiviewRun = null; }, 180000);
-    });
-    multiviewRun = run;
-    return run;
   } catch (e) {
-    await rm(outDir, { recursive: true, force: true }).catch(() => {});
-    if (preserved) await rename(backupDir, outDir).catch(() => {});
+    try { closeSync(fd); } catch { /* ignore */ }
+    await rm(stagingDir, { recursive: true, force: true }).catch(() => {});
     throw e;
+  } finally {
+    try { closeSync(fd); } catch { /* ignore */ }
   }
+  const run = { startedAt: Date.now(), outDir, stagingDir, maskVersion, stage: 'starting', done: false, error: null, consoleFile, log: [] };
+  const promote = async () => {
+    try {
+      await rename(stagingDir, outDir);
+      return;
+    } catch (firstError) {
+      // 目标目录可能被浏览器锁定；删除目标后再替换，避免启动阶段直接失败。
+      try { await rm(outDir, { recursive: true, force: true }); } catch (removeError) {
+        throw new Error(`模型产物替换失败：${firstError.message}；清理旧目录失败：${removeError.message}`);
+      }
+      try {
+        await rename(stagingDir, outDir);
+      } catch {
+        // 最后退回递归复制，确保 Windows 文件锁只影响旧目录而不影响新结果。
+        await cp(stagingDir, outDir, { recursive: true, force: true });
+        await rm(stagingDir, { recursive: true, force: true }).catch(() => {});
+      }
+    }
+  };
+  const cleanupFailed = async () => { await rm(stagingDir, { recursive: true, force: true }).catch(() => {}); };
+  child.on('error', async (e) => {
+    await cleanupFailed();
+    run.done = true; run.error = e.message; run.stage = 'failed';
+  });
+  child.on('close', async (code) => {
+    run.done = true;
+    run.stage = code === 0 ? 'complete' : 'failed';
+    if (code !== 0) {
+      run.error = `python 退出码 ${code}（日志：${path.relative(GEN_ROOT, consoleFile)}）`;
+      await cleanupFailed();
+    } else {
+      try { await promote(); } catch (e) {
+        run.stage = 'failed';
+        run.error = e.message;
+        await cleanupFailed();
+      }
+    }
+    refreshMultiviewStage(run);
+    if (multiviewRun === run) setTimeout(() => { if (multiviewRun === run) multiviewRun = null; }, 180000);
+  });
+  multiviewRun = run;
+  return run;
 }
 
 async function ensureComparison(targetId) {

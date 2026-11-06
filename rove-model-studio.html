@@ -753,6 +753,13 @@ async function openBrushView(angle) {
   const canvas = $('#brushCanvas');
   const source = brush.drafts.get(angle) || `${v.cutoutUrl}${v.cutoutUrl.includes('?') ? '&' : '?'}ts=${Date.now()}`;
   const img = await loadImage(source);
+  // 恢复工具使用 v2 修复版作为“可信恢复源”：它保留了鞋子/脚部，
+  // 而当前 v3 画布可能已经把这些区域误擦掉。若 v2 不可用则回退到当前图。
+  let restoreImg = img;
+  if (brush.state.baseVersion && brush.state.baseVersion !== brush.state.activeVersion) {
+    const baseUrl = `/api/qc/files/${encodeURIComponent(brush.state.baseVersion)}/${v.id}-cutout.png?ts=${Date.now()}`;
+    try { restoreImg = await loadImage(baseUrl); } catch { restoreImg = img; }
+  }
   canvas.width = img.naturalWidth || img.width;
   canvas.height = img.naturalHeight || img.height;
   brush.zoom = 1;
@@ -762,6 +769,7 @@ async function openBrushView(angle) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(img, 0, 0);
   brush.baseImage = img;
+  brush.restoreImage = restoreImg;
   brush.canvas = canvas;
   brush.ctx = ctx;
   brush.snapshots = [];
@@ -811,10 +819,11 @@ function bindBrushEvents() {
     if (brush.tool === 'erase') {
       ctx.globalCompositeOperation = 'destination-out';
       ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
-    } else if (brush.baseImage) {
+    } else if (brush.restoreImage || brush.baseImage) {
       ctx.globalCompositeOperation = 'source-over';
       ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.clip();
-      ctx.drawImage(brush.baseImage, x - r, y - r, brush.size, brush.size, x - r, y - r, brush.size, brush.size);
+      const restoreSource = brush.restoreImage || brush.baseImage;
+      ctx.drawImage(restoreSource, x - r, y - r, brush.size, brush.size, x - r, y - r, brush.size, brush.size);
     }
     ctx.restore();
     brush.edited.add(brush.active);
